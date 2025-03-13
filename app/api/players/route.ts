@@ -19,11 +19,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json()
-    console.log("Dados recebidos na rota POST /api/players:", data)
+    console.log("Dados recebidos na rota POST /api/players:", JSON.stringify(data))
+
+    // Validar dados recebidos
+    if (!data.name || !data.class) {
+      return NextResponse.json({ error: "Dados inválidos. Nome e classe são obrigatórios." }, { status: 400 })
+    }
 
     // Criar o jogador
     const newPlayer = await createPlayer({
-      playerBaseId: Date.now(),
+      playerBaseId: data.playerBaseId || Date.now(),
       name: data.name,
       guild: data.guild || "INFERNUS",
       class: data.class,
@@ -33,12 +38,23 @@ export async function POST(request: NextRequest) {
       isHealer: data.isHealer || false,
     })
 
-    console.log("Jogador criado com sucesso na API:", newPlayer)
+    console.log("Jogador criado com sucesso na API:", JSON.stringify(newPlayer))
+
+    // Atualizar o cache
+    try {
+      await fetch("/api/admin/refresh-cache", { method: "POST" })
+    } catch (cacheError) {
+      console.error("Erro ao atualizar cache:", cacheError)
+    }
+
     return NextResponse.json(newPlayer, { status: 201 })
   } catch (error) {
     console.error("Erro detalhado na rota POST /api/players:", error)
     return NextResponse.json(
-      { error: "Failed to create player", details: error instanceof Error ? error.message : String(error) },
+      {
+        error: "Failed to create player",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 },
     )
   }
