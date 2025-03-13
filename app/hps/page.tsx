@@ -39,7 +39,7 @@ export default async function HpsPage() {
         <div className="container py-10">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-yellow-500">Ranking de Healers</h2>
-            <p className="text-gray-400 mt-2">Confira o desempenho dos healers da INFERNUS nas caçadas</p>
+            <p className="text-gray-400 mt-2">Confira o desempenho dos healers nas caçadas</p>
           </div>
 
           <div className="mb-6">

@@ -121,14 +121,14 @@ export default function AdminDashboard() {
   return (
     <div className="flex min-h-screen flex-col bg-black/95 text-white relative">
       <header className="sticky top-0 z-10 bg-black/90 border-b border-yellow-600/20 backdrop-blur-sm">
-        <div className="container flex h-16 items-center justify-between py-4">
-          <div className="flex items-center gap-4">
+        <div className="container flex h-16 items-center justify-between">
+          <div className="flex items-center gap-2">
             <img
               src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SWAP_4.png-l04aTeewk2gUJEdgU6w8gsKCKAtxlW.jpeg"
               alt="Infernus Logo"
-              className="w-10 h-10 object-contain"
+              className="w-8 h-8 object-contain"
             />
-            <h1 className="text-xl font-bold text-yellow-500">INFERNUS CAÇADAS - ADMIN</h1>
+            <h1 className="text-xl font-bold text-yellow-500">INFERNUS - ADMIN</h1>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="outline" size="sm" onClick={handleLogout} className="border-yellow-600 text-yellow-500">

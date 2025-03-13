@@ -43,7 +43,7 @@ export default async function Home() {
         <div className="container py-10">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-yellow-500">Ranking de Jogadores</h2>
-            <p className="text-gray-400 mt-2">Confira o desempenho dos jogadores da INFERNUS nas caçadas</p>
+            <p className="text-gray-400 mt-2">Confira o desempenho dos jogadores nas caçadas</p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-2 mb-10">
