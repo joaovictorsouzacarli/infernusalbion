@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { AlertTriangle } from "lucide-react"
 
 export default function Error({
   error,
@@ -15,23 +17,22 @@ export default function Error({
   }, [error])
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4">
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
       <div className="text-center max-w-md">
-        <h2 className="text-2xl font-bold text-yellow-500 mb-4">Algo deu errado!</h2>
+        <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+        <h1 className="text-2xl font-bold text-yellow-500 mb-2">Algo deu errado!</h1>
         <p className="text-gray-400 mb-6">
           Ocorreu um erro ao carregar esta página. Tente novamente ou volte para a página inicial.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={() => reset()} className="bg-yellow-600 hover:bg-yellow-700 text-black">
+          <Button onClick={reset} className="bg-yellow-600 hover:bg-yellow-700 text-black">
             Tentar novamente
           </Button>
-          <Button
-            onClick={() => (window.location.href = "/")}
-            variant="outline"
-            className="border-yellow-600 text-yellow-500"
-          >
-            Voltar para o início
-          </Button>
+          <Link href="/">
+            <Button variant="outline" className="border-yellow-600 text-yellow-500">
+              Voltar para o início
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
