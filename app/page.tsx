@@ -23,13 +23,13 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        <div className="container py-6 md:py-12">
+        <div className="container py-10 flex flex-col items-center">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-yellow-500">Ranking de DPS/HPS</h2>
             <p className="text-gray-400 mt-2">Confira o desempenho dos jogadores da INFERNUS nas caçadas</p>
           </div>
 
-          <div className="mb-6">
+          <div className="w-full max-w-5xl mb-6">
             <div className="grid grid-cols-2 w-full bg-gray-900 rounded-lg mb-6">
               <div className="text-center py-2 text-yellow-500 bg-yellow-600/20 font-medium">DPS</div>
               <Link href="/hps" className="text-center py-2 text-yellow-500 hover:bg-yellow-600/10">
@@ -37,43 +37,8 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <Card className="bg-gray-900 border-yellow-900">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-yellow-500 mb-4">Tanques</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-black font-bold">
-                          1
-                        </div>
-                        <span className="font-medium">Jogador1</span>
-                      </div>
-                      <span className="text-yellow-500 font-bold">1200 DPS</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-black font-bold">
-                          2
-                        </div>
-                        <span className="font-medium">Jogador2</span>
-                      </div>
-                      <span className="text-yellow-500 font-bold">1100 DPS</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-yellow-900 flex items-center justify-center text-black font-bold">
-                          3
-                        </div>
-                        <span className="font-medium">Jogador3</span>
-                      </div>
-                      <span className="text-yellow-500 font-bold">1000 DPS</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-900 border-yellow-900">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="bg-gray-900 border-yellow-900/50">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold text-yellow-500 mb-4">DPS Melee</h3>
                   <div className="space-y-4">
@@ -108,7 +73,7 @@ export default function Home() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-yellow-900">
+              <Card className="bg-gray-900 border-yellow-900/50">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold text-yellow-500 mb-4">DPS Ranged</h3>
                   <div className="space-y-4">
@@ -144,7 +109,7 @@ export default function Home() {
               </Card>
             </div>
 
-            <div className="mt-8">
+            <div className="mt-8 text-center">
               <Link href="/estatisticas">
                 <Button className="bg-yellow-600 hover:bg-yellow-700 text-black">Ver estatísticas detalhadas</Button>
               </Link>

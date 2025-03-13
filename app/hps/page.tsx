@@ -9,13 +9,7 @@ export default function HpsPage() {
       <header className="border-b border-yellow-600">
         <div className="container flex h-16 items-center justify-between py-4">
           <div className="flex items-center gap-2">
-            <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SWAP_4.png-1E01OYWrRQZhycLojFhDgjHeUCjw8l.jpeg"
-              width={40}
-              height={40}
-              alt="Infernus Logo"
-              className="rounded-md"
-            />
+            <Image src="/logo.png" width={40} height={40} alt="Infernus Logo" className="rounded-md" />
             <h1 className="text-xl font-bold text-yellow-500">INFERNUS CAÇADAS</h1>
           </div>
           <div className="flex items-center gap-4">
@@ -29,13 +23,13 @@ export default function HpsPage() {
       </header>
 
       <main className="flex-1">
-        <div className="container py-6 md:py-12">
+        <div className="container py-10 flex flex-col items-center">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-yellow-500">Ranking de HPS</h2>
-            <p className="text-gray-400 mt-2">Confira o desempenho dos healers da INFERNUS nas caçadas</p>
+            <h2 className="text-3xl font-bold text-yellow-500">Ranking de DPS/HPS</h2>
+            <p className="text-gray-400 mt-2">Confira o desempenho dos jogadores da INFERNUS nas caçadas</p>
           </div>
 
-          <div className="mb-6">
+          <div className="w-full max-w-5xl mb-6">
             <div className="grid grid-cols-2 w-full bg-gray-900 rounded-lg mb-6">
               <Link href="/" className="text-center py-2 text-yellow-500 hover:bg-yellow-600/10">
                 DPS
@@ -43,8 +37,8 @@ export default function HpsPage() {
               <div className="text-center py-2 text-yellow-500 bg-yellow-600/20 font-medium">HPS</div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <Card className="bg-gray-900 border-yellow-900">
+            <div className="grid gap-6 md:grid-cols-1 max-w-lg mx-auto">
+              <Card className="bg-gray-900 border-yellow-900/50">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold text-yellow-500 mb-4">Healers</h3>
                   <div className="space-y-4">
@@ -80,7 +74,7 @@ export default function HpsPage() {
               </Card>
             </div>
 
-            <div className="mt-8">
+            <div className="mt-8 text-center">
               <Link href="/estatisticas?tab=hps">
                 <Button className="bg-yellow-600 hover:bg-yellow-700 text-black">Ver estatísticas detalhadas</Button>
               </Link>
