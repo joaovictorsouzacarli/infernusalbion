@@ -2,9 +2,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-export default async function Home() {
+export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-black text-white">
       <header className="border-b border-yellow-600">
@@ -36,174 +35,127 @@ export default async function Home() {
             <p className="text-gray-400 mt-2">Confira o desempenho dos jogadores da INFERNUS nas caçadas</p>
           </div>
 
-          <Tabs defaultValue="dps" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-gray-900">
-              <TabsTrigger value="dps" className="text-yellow-500 data-[state=active]:bg-yellow-600/20">
-                DPS
-              </TabsTrigger>
-              <TabsTrigger value="hps" className="text-yellow-500 data-[state=active]:bg-yellow-600/20">
+          <div className="mb-6">
+            <div className="grid grid-cols-2 w-full bg-gray-900 rounded-lg mb-6">
+              <div className="text-center py-2 text-yellow-500 bg-yellow-600/20 font-medium">DPS</div>
+              <Link href="/hps" className="text-center py-2 text-yellow-500 hover:bg-yellow-600/10">
                 HPS
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="dps" className="mt-6">
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card className="bg-gray-900 border-yellow-900">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-yellow-500 mb-4">Tanques</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-black font-bold">
-                            1
-                          </div>
-                          <span className="font-medium">Jogador1</span>
-                        </div>
-                        <span className="text-yellow-500 font-bold">1200 DPS</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-black font-bold">
-                            2
-                          </div>
-                          <span className="font-medium">Jogador2</span>
-                        </div>
-                        <span className="text-yellow-500 font-bold">1100 DPS</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-yellow-900 flex items-center justify-center text-black font-bold">
-                            3
-                          </div>
-                          <span className="font-medium">Jogador3</span>
-                        </div>
-                        <span className="text-yellow-500 font-bold">1000 DPS</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              </Link>
+            </div>
 
-                <Card className="bg-gray-900 border-yellow-900">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-yellow-500 mb-4">DPS Melee</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-black font-bold">
-                            1
-                          </div>
-                          <span className="font-medium">Jogador4</span>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <Card className="bg-gray-900 border-yellow-900">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold text-yellow-500 mb-4">Tanques</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-black font-bold">
+                          1
                         </div>
-                        <span className="text-yellow-500 font-bold">1800 DPS</span>
+                        <span className="font-medium">Jogador1</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-black font-bold">
-                            2
-                          </div>
-                          <span className="font-medium">Jogador5</span>
-                        </div>
-                        <span className="text-yellow-500 font-bold">1700 DPS</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-yellow-900 flex items-center justify-center text-black font-bold">
-                            3
-                          </div>
-                          <span className="font-medium">Jogador6</span>
-                        </div>
-                        <span className="text-yellow-500 font-bold">1600 DPS</span>
-                      </div>
+                      <span className="text-yellow-500 font-bold">1200 DPS</span>
                     </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gray-900 border-yellow-900">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-yellow-500 mb-4">DPS Ranged</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-black font-bold">
-                            1
-                          </div>
-                          <span className="font-medium">Jogador7</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-black font-bold">
+                          2
                         </div>
-                        <span className="text-yellow-500 font-bold">1500 DPS</span>
+                        <span className="font-medium">Jogador2</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-black font-bold">
-                            2
-                          </div>
-                          <span className="font-medium">Jogador8</span>
-                        </div>
-                        <span className="text-yellow-500 font-bold">1400 DPS</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-yellow-900 flex items-center justify-center text-black font-bold">
-                            3
-                          </div>
-                          <span className="font-medium">Jogador9</span>
-                        </div>
-                        <span className="text-yellow-500 font-bold">1300 DPS</span>
-                      </div>
+                      <span className="text-yellow-500 font-bold">1100 DPS</span>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="mt-8">
-                <Link href="/estatisticas">
-                  <Button className="bg-yellow-600 hover:bg-yellow-700 text-black">Ver estatísticas detalhadas</Button>
-                </Link>
-              </div>
-            </TabsContent>
-            <TabsContent value="hps" className="mt-6">
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card className="bg-gray-900 border-yellow-900">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-yellow-500 mb-4">Healers</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-black font-bold">
-                            1
-                          </div>
-                          <span className="font-medium">Healer1</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-yellow-900 flex items-center justify-center text-black font-bold">
+                          3
                         </div>
-                        <span className="text-yellow-500 font-bold">1200 HPS</span>
+                        <span className="font-medium">Jogador3</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-black font-bold">
-                            2
-                          </div>
-                          <span className="font-medium">Healer2</span>
-                        </div>
-                        <span className="text-yellow-500 font-bold">1100 HPS</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-yellow-900 flex items-center justify-center text-black font-bold">
-                            3
-                          </div>
-                          <span className="font-medium">Healer3</span>
-                        </div>
-                        <span className="text-yellow-500 font-bold">1000 HPS</span>
-                      </div>
+                      <span className="text-yellow-500 font-bold">1000 DPS</span>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-              <div className="mt-8">
-                <Link href="/estatisticas?tab=hps">
-                  <Button className="bg-yellow-600 hover:bg-yellow-700 text-black">Ver estatísticas detalhadas</Button>
-                </Link>
-              </div>
-            </TabsContent>
-          </Tabs>
+              <Card className="bg-gray-900 border-yellow-900">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold text-yellow-500 mb-4">DPS Melee</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-black font-bold">
+                          1
+                        </div>
+                        <span className="font-medium">Jogador4</span>
+                      </div>
+                      <span className="text-yellow-500 font-bold">1800 DPS</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-black font-bold">
+                          2
+                        </div>
+                        <span className="font-medium">Jogador5</span>
+                      </div>
+                      <span className="text-yellow-500 font-bold">1700 DPS</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-yellow-900 flex items-center justify-center text-black font-bold">
+                          3
+                        </div>
+                        <span className="font-medium">Jogador6</span>
+                      </div>
+                      <span className="text-yellow-500 font-bold">1600 DPS</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-900 border-yellow-900">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold text-yellow-500 mb-4">DPS Ranged</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-black font-bold">
+                          1
+                        </div>
+                        <span className="font-medium">Jogador7</span>
+                      </div>
+                      <span className="text-yellow-500 font-bold">1500 DPS</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-black font-bold">
+                          2
+                        </div>
+                        <span className="font-medium">Jogador8</span>
+                      </div>
+                      <span className="text-yellow-500 font-bold">1400 DPS</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-yellow-900 flex items-center justify-center text-black font-bold">
+                          3
+                        </div>
+                        <span className="font-medium">Jogador9</span>
+                      </div>
+                      <span className="text-yellow-500 font-bold">1300 DPS</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-8">
+              <Link href="/estatisticas">
+                <Button className="bg-yellow-600 hover:bg-yellow-700 text-black">Ver estatísticas detalhadas</Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </main>
 

@@ -17,7 +17,6 @@ const nextConfig = {
   },
   experimental: {
     // Configurações experimentais
-    serverActions: true,
     serverComponentsExternalPackages: [],
   },
   // Aumentar o limite de tamanho do bundle

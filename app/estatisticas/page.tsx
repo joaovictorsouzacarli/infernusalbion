@@ -2,10 +2,15 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft } from "lucide-react"
 
-export default function EstatisticasPage() {
+export default function EstatisticasPage({
+  searchParams,
+}: {
+  searchParams: { tab?: string }
+}) {
+  const activeTab = searchParams.tab === "hps" ? "hps" : "dps"
+
   return (
     <div className="flex min-h-screen flex-col bg-black text-white">
       <header className="border-b border-yellow-600">
@@ -42,16 +47,23 @@ export default function EstatisticasPage() {
             <h2 className="text-3xl font-bold text-yellow-500 ml-4">Estatísticas Detalhadas</h2>
           </div>
 
-          <Tabs defaultValue="dps" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-gray-900">
-              <TabsTrigger value="dps" className="text-yellow-500 data-[state=active]:bg-yellow-600/20">
+          <div className="mb-6">
+            <div className="grid grid-cols-2 w-full bg-gray-900 rounded-lg mb-6">
+              <Link
+                href="/estatisticas"
+                className={`text-center py-2 text-yellow-500 ${activeTab === "dps" ? "bg-yellow-600/20 font-medium" : "hover:bg-yellow-600/10"}`}
+              >
                 DPS
-              </TabsTrigger>
-              <TabsTrigger value="hps" className="text-yellow-500 data-[state=active]:bg-yellow-600/20">
+              </Link>
+              <Link
+                href="/estatisticas?tab=hps"
+                className={`text-center py-2 text-yellow-500 ${activeTab === "hps" ? "bg-yellow-600/20 font-medium" : "hover:bg-yellow-600/10"}`}
+              >
                 HPS
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="dps" className="mt-6">
+              </Link>
+            </div>
+
+            {activeTab === "dps" ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card className="bg-gray-900 border-yellow-900">
                   <CardContent className="p-6">
@@ -158,8 +170,7 @@ export default function EstatisticasPage() {
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
-            <TabsContent value="hps" className="mt-6">
+            ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card className="bg-gray-900 border-yellow-900">
                   <CardContent className="p-6">
@@ -196,8 +207,8 @@ export default function EstatisticasPage() {
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
-          </Tabs>
+            )}
+          </div>
         </div>
       </main>
 
