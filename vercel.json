@@ -1,16 +1,12 @@
 {
-  "version": 2,
   "builds": [
     {
       "src": "package.json",
       "use": "@vercel/next",
       "config": {
-        "installCommand": "npm install --legacy-peer-deps",
-        "buildCommand": "next build --no-lint"
+        "skipTypeCheck": true
       }
     }
-  ],
-  "env": {
-    "DATABASE_URL": "mongodb+srv://dbuser:javalol@cluster0.b9u3i.mongodb.net/albion_dps?retryWrites=true&w=majority&appName=Cluster0"
-  }
+  ]
 }
+
