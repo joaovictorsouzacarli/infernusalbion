@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ArrowLeft, Search, Medal, BarChart3, Users } from "lucide-react"
 import type { Player } from "@/lib/db"
+import { SiteHeader } from "@/components/site-header"
 
 export default function EstatisticasPage() {
   const [players, setPlayers] = useState<Player[]>([])
@@ -71,22 +71,8 @@ export default function EstatisticasPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-black text-white">
-      <header className="border-b border-yellow-600">
-        <div className="container flex h-16 items-center justify-between py-4">
-          <div className="flex items-center gap-2">
-            <Image src="/logo.png" width={40} height={40} alt="Infernus Logo" className="rounded-md" />
-            <h1 className="text-xl font-bold text-yellow-500">INFERNUS CAÇADAS</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/admin/login">
-              <Button variant="outline" className="border-yellow-600 text-yellow-500">
-                Área Administrativa
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col bg-black/95 text-white relative">
+      <SiteHeader />
 
       <main className="flex-1">
         <div className="container py-10">

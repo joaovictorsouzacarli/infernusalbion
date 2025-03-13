@@ -16,6 +16,17 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body>
+        <div
+          className="fixed inset-0 bg-black"
+          style={{
+            backgroundImage:
+              'url("https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SWAP_4.png-l04aTeewk2gUJEdgU6w8gsKCKAtxlW.jpeg")',
+            backgroundSize: "800px",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            opacity: 0.05,
+          }}
+        />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="infernus-theme">
           {children}
         </ThemeProvider>

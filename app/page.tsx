@@ -1,8 +1,8 @@
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Medal } from "lucide-react"
+import { SiteHeader } from "@/components/site-header"
 
 // Função para obter os jogadores do servidor
 async function getPlayers() {
@@ -36,24 +36,10 @@ export default async function Home() {
     .sort((a, b) => Number.parseInt(b.avgDps) - Number.parseInt(a.avgDps))
 
   return (
-    <div className="flex min-h-screen flex-col bg-black text-white">
-      <header className="border-b border-yellow-600">
-        <div className="container flex h-16 items-center justify-between py-4">
-          <div className="flex items-center gap-2">
-            <Image src="/logo.png" width={40} height={40} alt="Infernus Logo" className="rounded-md" />
-            <h1 className="text-xl font-bold text-yellow-500">INFERNUS CAÇADAS</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/admin/login">
-              <Button variant="outline" className="border-yellow-600 text-yellow-500">
-                Área Administrativa
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col bg-black/95 text-white relative">
+      <SiteHeader />
 
-      <main className="flex-1">
+      <main className="flex-1 relative">
         <div className="container py-10">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-yellow-500">Ranking de Jogadores</h2>
@@ -174,7 +160,7 @@ export default async function Home() {
         </div>
       </main>
 
-      <footer className="border-t border-yellow-900/50 bg-black">
+      <footer className="border-t border-yellow-900/50 bg-black/80 relative">
         <div className="container flex flex-col items-center justify-between gap-4 py-6 md:h-16 md:flex-row md:py-0">
           <p className="text-sm text-gray-500">
             &copy; {new Date().getFullYear()} INFERNUS CAÇADAS. Todos os direitos reservados.
