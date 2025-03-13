@@ -144,7 +144,7 @@ export default function Home() {
               </Card>
             </div>
 
-            <div className="mt-8 flex justify-center">
+            <div className="mt-8">
               <Link href="/estatisticas">
                 <Button className="bg-yellow-600 hover:bg-yellow-700 text-black">Ver estatísticas detalhadas</Button>
               </Link>
