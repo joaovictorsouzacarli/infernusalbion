@@ -40,13 +40,6 @@ export async function POST(request: NextRequest) {
 
     console.log("Jogador criado com sucesso na API:", JSON.stringify(newPlayer))
 
-    // Atualizar o cache
-    try {
-      await fetch("/api/admin/refresh-cache", { method: "POST" })
-    } catch (cacheError) {
-      console.error("Erro ao atualizar cache:", cacheError)
-    }
-
     return NextResponse.json(newPlayer, { status: 201 })
   } catch (error) {
     console.error("Erro detalhado na rota POST /api/players:", error)

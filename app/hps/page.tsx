@@ -2,8 +2,35 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Medal } from "lucide-react"
 
-export default function HpsPage() {
+// Função para obter os jogadores do servidor
+async function getPlayers() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/players`, {
+      cache: "no-store",
+      next: { revalidate: 60 }, // Revalidar a cada 60 segundos
+    })
+
+    if (!res.ok) {
+      throw new Error("Falha ao carregar jogadores")
+    }
+
+    return res.json()
+  } catch (error) {
+    console.error("Erro ao buscar jogadores:", error)
+    return []
+  }
+}
+
+export default async function HpsPage() {
+  const players = await getPlayers()
+
+  // Filtrar apenas healers e ordenar por HPS
+  const healers = players
+    .filter((player) => player.isHealer)
+    .sort((a, b) => Number.parseInt(b.avgDps) - Number.parseInt(a.avgDps))
+
   return (
     <div className="flex min-h-screen flex-col bg-black text-white">
       <header className="border-b border-yellow-600">
@@ -23,56 +50,70 @@ export default function HpsPage() {
       </header>
 
       <main className="flex-1">
-        <div className="container py-10 flex flex-col items-center">
+        <div className="container py-10">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-yellow-500">Ranking de DPS/HPS</h2>
-            <p className="text-gray-400 mt-2">Confira o desempenho dos jogadores da INFERNUS nas caçadas</p>
+            <h2 className="text-3xl font-bold text-yellow-500">Ranking de Healers</h2>
+            <p className="text-gray-400 mt-2">Confira o desempenho dos healers da INFERNUS nas caçadas</p>
           </div>
 
-          <div className="w-full max-w-5xl mb-6">
-            <div className="grid grid-cols-2 w-full bg-gray-900 rounded-lg mb-6">
+          <div className="mb-6">
+            <div className="grid grid-cols-2 w-full max-w-md mx-auto bg-gray-900 rounded-lg mb-6">
               <Link href="/" className="text-center py-2 text-yellow-500 hover:bg-yellow-600/10">
                 DPS
               </Link>
               <div className="text-center py-2 text-yellow-500 bg-yellow-600/20 font-medium">HPS</div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-1 max-w-lg mx-auto">
-              <Card className="bg-gray-900 border-yellow-900/50">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-yellow-500 mb-4">Healers</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-black font-bold">
-                          1
+            <Card className="bg-gray-900 border-yellow-900/50 max-w-2xl mx-auto">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-yellow-500 mb-4 flex items-center">
+                  <span className="bg-yellow-600/20 px-3 py-1 rounded-md">Ranking de HPS</span>
+                </h3>
+                <div className="space-y-4">
+                  {healers.length > 0 ? (
+                    healers.map((player, index) => (
+                      <div
+                        key={player.id || player._id}
+                        className="flex items-center justify-between border-b border-gray-800 pb-3 last:border-0"
+                      >
+                        <div className="flex items-center gap-2">
+                          {index === 0 && (
+                            <div className="text-yellow-400">
+                              <Medal size={24} />
+                            </div>
+                          )}
+                          {index === 1 && (
+                            <div className="text-gray-400">
+                              <Medal size={24} />
+                            </div>
+                          )}
+                          {index === 2 && (
+                            <div className="text-amber-700">
+                              <Medal size={24} />
+                            </div>
+                          )}
+                          {index > 2 && (
+                            <div className="w-6 h-6 flex items-center justify-center text-gray-500 font-bold">
+                              {index + 1}
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-medium">{player.name}</div>
+                            <div className="text-xs text-gray-400">{player.class}</div>
+                          </div>
                         </div>
-                        <span className="font-medium">Healer1</span>
-                      </div>
-                      <span className="text-yellow-500 font-bold">1200 HPS</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-black font-bold">
-                          2
+                        <div className="text-right">
+                          <div className="text-yellow-500 font-bold">{player.avgDps} HPS</div>
+                          <div className="text-xs text-gray-400">Nota: {player.avgRating}</div>
                         </div>
-                        <span className="font-medium">Healer2</span>
                       </div>
-                      <span className="text-yellow-500 font-bold">1100 HPS</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-yellow-900 flex items-center justify-center text-black font-bold">
-                          3
-                        </div>
-                        <span className="font-medium">Healer3</span>
-                      </div>
-                      <span className="text-yellow-500 font-bold">1000 HPS</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500 py-4">Nenhum healer encontrado</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="mt-8 text-center">
               <Link href="/estatisticas?tab=hps">

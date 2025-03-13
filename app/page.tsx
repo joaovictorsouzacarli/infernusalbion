@@ -2,8 +2,39 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Medal } from "lucide-react"
 
-export default function Home() {
+// Função para obter os jogadores do servidor
+async function getPlayers() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/players`, {
+      cache: "no-store",
+      next: { revalidate: 60 }, // Revalidar a cada 60 segundos
+    })
+
+    if (!res.ok) {
+      throw new Error("Falha ao carregar jogadores")
+    }
+
+    return res.json()
+  } catch (error) {
+    console.error("Erro ao buscar jogadores:", error)
+    return []
+  }
+}
+
+export default async function Home() {
+  const players = await getPlayers()
+
+  // Separar jogadores por tipo (DPS e HPS)
+  const dpsPlayers = players
+    .filter((player) => !player.isHealer)
+    .sort((a, b) => Number.parseInt(b.avgDps) - Number.parseInt(a.avgDps))
+
+  const hpsPlayers = players
+    .filter((player) => player.isHealer)
+    .sort((a, b) => Number.parseInt(b.avgDps) - Number.parseInt(a.avgDps))
+
   return (
     <div className="flex min-h-screen flex-col bg-black text-white">
       <header className="border-b border-yellow-600">
@@ -23,97 +54,122 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        <div className="container py-10 flex flex-col items-center">
+        <div className="container py-10">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-yellow-500">Ranking de DPS/HPS</h2>
+            <h2 className="text-3xl font-bold text-yellow-500">Ranking de Jogadores</h2>
             <p className="text-gray-400 mt-2">Confira o desempenho dos jogadores da INFERNUS nas caçadas</p>
           </div>
 
-          <div className="w-full max-w-5xl mb-6">
-            <div className="grid grid-cols-2 w-full bg-gray-900 rounded-lg mb-6">
-              <div className="text-center py-2 text-yellow-500 bg-yellow-600/20 font-medium">DPS</div>
-              <Link href="/hps" className="text-center py-2 text-yellow-500 hover:bg-yellow-600/10">
-                HPS
-              </Link>
-            </div>
+          <div className="grid gap-8 md:grid-cols-2 mb-10">
+            {/* Seção de DPS */}
+            <Card className="bg-gray-900 border-yellow-900/50">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-yellow-500 mb-4 flex items-center">
+                  <span className="bg-yellow-600/20 px-3 py-1 rounded-md">Ranking de DPS</span>
+                </h3>
+                <div className="space-y-4">
+                  {dpsPlayers.length > 0 ? (
+                    dpsPlayers.map((player, index) => (
+                      <div
+                        key={player.id || player._id}
+                        className="flex items-center justify-between border-b border-gray-800 pb-3 last:border-0"
+                      >
+                        <div className="flex items-center gap-2">
+                          {index === 0 && (
+                            <div className="text-yellow-400">
+                              <Medal size={24} />
+                            </div>
+                          )}
+                          {index === 1 && (
+                            <div className="text-gray-400">
+                              <Medal size={24} />
+                            </div>
+                          )}
+                          {index === 2 && (
+                            <div className="text-amber-700">
+                              <Medal size={24} />
+                            </div>
+                          )}
+                          {index > 2 && (
+                            <div className="w-6 h-6 flex items-center justify-center text-gray-500 font-bold">
+                              {index + 1}
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-medium">{player.name}</div>
+                            <div className="text-xs text-gray-400">{player.class}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-yellow-500 font-bold">{player.avgDps} DPS</div>
+                          <div className="text-xs text-gray-400">Nota: {player.avgRating}</div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500 py-4">Nenhum jogador DPS encontrado</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card className="bg-gray-900 border-yellow-900/50">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-yellow-500 mb-4">DPS Melee</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-black font-bold">
-                          1
+            {/* Seção de HPS */}
+            <Card className="bg-gray-900 border-yellow-900/50">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-yellow-500 mb-4 flex items-center">
+                  <span className="bg-yellow-600/20 px-3 py-1 rounded-md">Ranking de HPS</span>
+                </h3>
+                <div className="space-y-4">
+                  {hpsPlayers.length > 0 ? (
+                    hpsPlayers.map((player, index) => (
+                      <div
+                        key={player.id || player._id}
+                        className="flex items-center justify-between border-b border-gray-800 pb-3 last:border-0"
+                      >
+                        <div className="flex items-center gap-2">
+                          {index === 0 && (
+                            <div className="text-yellow-400">
+                              <Medal size={24} />
+                            </div>
+                          )}
+                          {index === 1 && (
+                            <div className="text-gray-400">
+                              <Medal size={24} />
+                            </div>
+                          )}
+                          {index === 2 && (
+                            <div className="text-amber-700">
+                              <Medal size={24} />
+                            </div>
+                          )}
+                          {index > 2 && (
+                            <div className="w-6 h-6 flex items-center justify-center text-gray-500 font-bold">
+                              {index + 1}
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-medium">{player.name}</div>
+                            <div className="text-xs text-gray-400">{player.class}</div>
+                          </div>
                         </div>
-                        <span className="font-medium">Jogador4</span>
-                      </div>
-                      <span className="text-yellow-500 font-bold">1800 DPS</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-black font-bold">
-                          2
+                        <div className="text-right">
+                          <div className="text-yellow-500 font-bold">{player.avgDps} HPS</div>
+                          <div className="text-xs text-gray-400">Nota: {player.avgRating}</div>
                         </div>
-                        <span className="font-medium">Jogador5</span>
                       </div>
-                      <span className="text-yellow-500 font-bold">1700 DPS</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-yellow-900 flex items-center justify-center text-black font-bold">
-                          3
-                        </div>
-                        <span className="font-medium">Jogador6</span>
-                      </div>
-                      <span className="text-yellow-500 font-bold">1600 DPS</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500 py-4">Nenhum jogador Healer encontrado</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-              <Card className="bg-gray-900 border-yellow-900/50">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-yellow-500 mb-4">DPS Ranged</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-yellow-600 flex items-center justify-center text-black font-bold">
-                          1
-                        </div>
-                        <span className="font-medium">Jogador7</span>
-                      </div>
-                      <span className="text-yellow-500 font-bold">1500 DPS</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-black font-bold">
-                          2
-                        </div>
-                        <span className="font-medium">Jogador8</span>
-                      </div>
-                      <span className="text-yellow-500 font-bold">1400 DPS</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-yellow-900 flex items-center justify-center text-black font-bold">
-                          3
-                        </div>
-                        <span className="font-medium">Jogador9</span>
-                      </div>
-                      <span className="text-yellow-500 font-bold">1300 DPS</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="mt-8 text-center">
-              <Link href="/estatisticas">
-                <Button className="bg-yellow-600 hover:bg-yellow-700 text-black">Ver estatísticas detalhadas</Button>
-              </Link>
-            </div>
+          <div className="text-center">
+            <Link href="/estatisticas">
+              <Button className="bg-yellow-600 hover:bg-yellow-700 text-black">Ver estatísticas detalhadas</Button>
+            </Link>
           </div>
         </div>
       </main>
