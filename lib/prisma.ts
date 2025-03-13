@@ -6,9 +6,20 @@ declare global {
   var prisma: PrismaClient | undefined
 }
 
-const client = global.prisma || new PrismaClient()
+// Adicionar logs para depuração
+const prismaClientSingleton = () => {
+  console.log("Inicializando PrismaClient com URL:", process.env.DATABASE_URL)
+  return new PrismaClient({
+    log: ["query", "info", "warn", "error"],
+  })
+}
 
-if (process.env.NODE_ENV !== "production") global.prisma = client
+const client = global.prisma || prismaClientSingleton()
+
+if (process.env.NODE_ENV !== "production") {
+  global.prisma = client
+  console.log("PrismaClient configurado em ambiente de desenvolvimento")
+}
 
 export const prisma = client
 
