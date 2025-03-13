@@ -9,6 +9,8 @@
         "buildCommand": "next build --no-lint"
       }
     }
-  ]
+  ],
+  "env": {
+    "DATABASE_URL": "mongodb+srv://dbuser:javalol@cluster0.b9u3i.mongodb.net/albion_dps?retryWrites=true&w=majority&appName=Cluster0"
+  }
 }
-
