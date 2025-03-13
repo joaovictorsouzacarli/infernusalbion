@@ -151,11 +151,17 @@ export async function getPlayersGroupedByClass(): Promise<Player[]> {
 
 export async function createPlayer(player: Player): Promise<Player> {
   try {
+    console.log("Iniciando criação do jogador:", player)
+
+    // Verificar conexão com o banco
+    await prisma.$connect()
+    console.log("Conexão com o banco estabelecida")
+
     const newPlayer = await prisma.player.create({
       data: {
         playerBaseId: player.playerBaseId,
         name: player.name,
-        guild: player.guild,
+        guild: player.guild || "INFERNUS",
         class: player.class,
         avgDps: player.avgDps,
         maxDps: player.maxDps,
@@ -164,13 +170,13 @@ export async function createPlayer(player: Player): Promise<Player> {
       },
     })
 
-    // Atualizar timestamp
-    lastDataUpdate = Date.now()
-
+    console.log("Jogador criado com sucesso:", newPlayer)
     return convertPrismaPlayer(newPlayer)
   } catch (error) {
-    console.error("Error creating player:", error)
+    console.error("Erro detalhado ao criar jogador:", error)
     throw error
+  } finally {
+    await prisma.$disconnect()
   }
 }
 
