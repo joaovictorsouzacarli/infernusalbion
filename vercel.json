@@ -1,15 +1,8 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next",
-      "config": {
-        "skipTypeCheck": true,
-        "buildCommand": "next build --no-lint"
-      }
-    }
-  ],
+  "buildCommand": "npm run build",
+  "installCommand": "npm install --legacy-peer-deps",
+  "framework": "nextjs",
   "env": {
     "NEXT_TELEMETRY_DISABLED": "1"
   }

@@ -9,11 +9,16 @@ const nextConfig = {
     // Ignorar erros de ESLint durante o build
     ignoreDuringBuilds: true,
   },
-  // Ignorar erros de análise de código durante o build
+  // Configuração do SWC
   swcMinify: true,
+  compiler: {
+    // Desativar a remoção de console.logs
+    removeConsole: false,
+  },
   experimental: {
-    // Desativar verificações experimentais
-    esmExternals: "loose",
+    // Configurações experimentais
+    serverActions: true,
+    serverComponentsExternalPackages: [],
   },
   // Aumentar o limite de tamanho do bundle
   webpack: (config, { isServer }) => {
