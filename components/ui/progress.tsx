@@ -3,28 +3,30 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-const Progress = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & {
-    value?: number
-    max?: number
-  }
->(({ className, value = 0, max = 100, ...props }, ref) => {
-  const percentage = (value / max) * 100
+interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
+  value?: number
+  max?: number
+  indicatorClassName?: string
+}
 
-  return (
-    <div
-      ref={ref}
-      className={cn("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className)}
-      {...props}
-    >
+const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
+  ({ className, value = 0, max = 100, indicatorClassName, ...props }, ref) => {
+    const percentage = (value / max) * 100
+
+    return (
       <div
-        className="h-full w-full flex-1 bg-primary transition-all"
-        style={{ transform: `translateX(-${100 - percentage}%)` }}
-      />
-    </div>
-  )
-})
+        ref={ref}
+        className={cn("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className)}
+        {...props}
+      >
+        <div
+          className={cn("h-full w-full flex-1 bg-primary transition-all", indicatorClassName)}
+          style={{ transform: `translateX(-${100 - percentage}%)` }}
+        />
+      </div>
+    )
+  },
+)
 Progress.displayName = "Progress"
 
 export { Progress }
