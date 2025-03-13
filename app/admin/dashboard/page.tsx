@@ -42,10 +42,19 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/players?t=${Date.now()}`)
+      // Adicionando um timestamp para evitar cache
+      const response = await fetch(`/api/players?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      })
+
       if (response.ok) {
         const data = await response.json()
-        console.log("Dados recebidos:", data)
+        console.log(`Painel Admin: Recebidos ${data.length} jogadores da API`)
         setPlayers(data)
         setFilteredPlayers(data)
       } else {

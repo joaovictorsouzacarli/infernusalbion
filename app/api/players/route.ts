@@ -1,9 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createPlayer, getPlayersGroupedByClass, lastDataUpdate } from "@/lib/db"
+import { createPlayer, getPlayers, lastDataUpdate } from "@/lib/db"
 
 export async function GET(request: NextRequest) {
   try {
-    const players = await getPlayersGroupedByClass()
+    // Alterando de getPlayersGroupedByClass para getPlayers para obter todos os jogadores diretamente
+    const players = await getPlayers()
     return NextResponse.json(players, {
       headers: {
         "Cache-Control": "no-store, max-age=0",

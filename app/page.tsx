@@ -3,20 +3,24 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Medal } from "lucide-react"
 import { SiteHeader } from "@/components/site-header"
+import { DebugInfo } from "@/components/debug-info"
 
 // Função para obter os jogadores do servidor
 async function getPlayers() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/players`, {
+    // Adicionando um timestamp para evitar cache
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/players?t=${Date.now()}`, {
       cache: "no-store",
-      next: { revalidate: 60 }, // Revalidar a cada 60 segundos
+      next: { revalidate: 0 }, // Desabilitando o cache completamente
     })
 
     if (!res.ok) {
       throw new Error("Falha ao carregar jogadores")
     }
 
-    return res.json()
+    const data = await res.json()
+    console.log(`Página inicial: Recebidos ${data.length} jogadores da API`)
+    return data
   } catch (error) {
     console.error("Erro ao buscar jogadores:", error)
     return []
@@ -167,6 +171,20 @@ export default async function Home() {
           </p>
         </div>
       </footer>
+      <DebugInfo
+        data={{
+          totalPlayers: players.length,
+          dpsPlayers: dpsPlayers.length,
+          hpsPlayers: hpsPlayers.length,
+          players: players.map((p) => ({
+            id: p.id || p._id,
+            name: p.name,
+            class: p.class,
+            avgDps: p.avgDps,
+            isHealer: p.isHealer,
+          })),
+        }}
+      />
     </div>
   )
 }

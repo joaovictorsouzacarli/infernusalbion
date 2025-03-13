@@ -1,5 +1,8 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { RefreshCw } from "lucide-react"
 
 export function SiteHeader() {
   return (
@@ -15,12 +18,23 @@ export function SiteHeader() {
           <h1 className="text-xl font-bold text-yellow-500">INFERNUS</h1>
         </div>
 
-        {/* Admin Link */}
-        <Link href="/admin/login">
-          <Button variant="outline" className="border-yellow-600 text-yellow-500">
-            Área Administrativa
+        {/* Admin Link and Refresh Button */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.location.reload()}
+            className="text-yellow-500 hover:bg-yellow-900/20"
+            title="Atualizar dados"
+          >
+            <RefreshCw className="h-4 w-4" />
           </Button>
-        </Link>
+          <Link href="/admin/login">
+            <Button variant="outline" className="border-yellow-600 text-yellow-500">
+              Área Administrativa
+            </Button>
+          </Link>
+        </div>
       </div>
     </header>
   )

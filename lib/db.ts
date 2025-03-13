@@ -68,7 +68,13 @@ function convertPrismaDpsRecord(record: PrismaDpsRecord): DpsRecord {
 // Funções para Players
 export async function getPlayers(): Promise<Player[]> {
   try {
-    const players = await prisma.player.findMany()
+    console.log("Buscando todos os jogadores do banco de dados...")
+    const players = await prisma.player.findMany({
+      orderBy: {
+        avgDps: "desc",
+      },
+    })
+    console.log(`Encontrados ${players.length} jogadores no banco de dados`)
     return players.map(convertPrismaPlayer)
   } catch (error) {
     console.error("Error fetching players:", error)
