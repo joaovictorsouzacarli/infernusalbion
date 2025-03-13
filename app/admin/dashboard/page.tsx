@@ -244,8 +244,11 @@ export default function AdminDashboard() {
                     </thead>
                     <tbody>
                       {filteredPlayers.length > 0 ? (
-                        filteredPlayers.map((player) => (
-                          <tr key={player._id} className="border-b border-yellow-900/30 hover:bg-black/40">
+                        filteredPlayers.map((player, index) => (
+                          <tr
+                            key={player.id || player._id || index}
+                            className="border-b border-yellow-900/30 hover:bg-black/40"
+                          >
                             <td className="px-4 py-3 text-sm font-medium text-white">{player.name}</td>
                             <td className="px-4 py-3 text-sm text-gray-300">{player.class}</td>
                             <td className="px-4 py-3 text-sm font-medium text-yellow-500">
