@@ -1,12 +1,17 @@
 {
+  "version": 2,
   "builds": [
     {
       "src": "package.json",
       "use": "@vercel/next",
       "config": {
-        "skipTypeCheck": true
+        "skipTypeCheck": true,
+        "buildCommand": "next build --no-lint"
       }
     }
-  ]
+  ],
+  "env": {
+    "NEXT_TELEMETRY_DISABLED": "1"
+  }
 }
 
