@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  playerBaseId Int
+  name        String
+  guild       String
+  class       String
+  avgDps      String
+  maxDps      String
+  avgRating   String
+  isHealer    Boolean
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DpsRecord {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  playerId    Int
+  playerBaseId Int
+  playerName  String
+  playerClass String
+  dps         Float
+  rating      Float
+  date        String
+  huntType    String
+  isHeal      Boolean
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+

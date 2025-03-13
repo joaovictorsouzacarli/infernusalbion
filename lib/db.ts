@@ -1,4 +1,7 @@
 // Tipos
+import { prisma } from "./prisma"
+import type { Player as PrismaPlayer, DpsRecord as PrismaDpsRecord } from "@prisma/client"
+
 export interface Player {
   _id?: string
   id?: number
@@ -29,159 +32,339 @@ export interface DpsRecord {
 // Exportando uma variável para armazenar a última atualização
 export let lastDataUpdate = Date.now()
 
-// Armazenamento local - inicializado vazio
-let players: Player[] = []
-let dpsRecords: DpsRecord[] = []
+// Função para converter um Player do Prisma para o formato da aplicação
+function convertPrismaPlayer(player: PrismaPlayer): Player {
+  return {
+    _id: player.id,
+    playerBaseId: player.playerBaseId,
+    name: player.name,
+    guild: player.guild,
+    class: player.class,
+    avgDps: player.avgDps,
+    maxDps: player.maxDps,
+    avgRating: player.avgRating,
+    isHealer: player.isHealer,
+  }
+}
 
-// Função para gerar IDs únicos
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+// Função para converter um DpsRecord do Prisma para o formato da aplicação
+function convertPrismaDpsRecord(record: PrismaDpsRecord): DpsRecord {
+  return {
+    _id: record.id,
+    playerId: record.playerId,
+    playerBaseId: record.playerBaseId,
+    playerName: record.playerName,
+    playerClass: record.playerClass,
+    dps: record.dps,
+    rating: record.rating,
+    date: record.date,
+    huntType: record.huntType,
+    isHeal: record.isHeal,
+  }
 }
 
 // Funções para Players
-export async function getPlayers() {
-  return players
+export async function getPlayers(): Promise<Player[]> {
+  try {
+    const players = await prisma.player.findMany()
+    return players.map(convertPrismaPlayer)
+  } catch (error) {
+    console.error("Error fetching players:", error)
+    return []
+  }
 }
 
-export async function getPlayerById(id: string) {
-  return players.find((player) => player._id === id) || null
+export async function getPlayerById(id: string): Promise<Player | null> {
+  try {
+    const player = await prisma.player.findUnique({
+      where: { id },
+    })
+    return player ? convertPrismaPlayer(player) : null
+  } catch (error) {
+    console.error("Error fetching player by ID:", error)
+    return null
+  }
 }
 
-export async function getPlayerByBaseId(playerBaseId: number) {
-  return players.find((player) => player.playerBaseId === playerBaseId) || null
+export async function getPlayerByBaseId(playerBaseId: number): Promise<Player | null> {
+  try {
+    const player = await prisma.player.findFirst({
+      where: { playerBaseId },
+    })
+    return player ? convertPrismaPlayer(player) : null
+  } catch (error) {
+    console.error("Error fetching player by base ID:", error)
+    return null
+  }
 }
 
 // Função para obter jogadores agrupados por classe
-export async function getPlayersGroupedByClass() {
-  // Criar um mapa para armazenar jogadores por nome e classe
-  const playerMap: Record<string, Record<string, Player>> = {}
+export async function getPlayersGroupedByClass(): Promise<Player[]> {
+  try {
+    // Buscar todos os registros de DPS
+    const dpsRecords = await getDpsRecords()
 
-  // Processar todos os registros de DPS
-  for (const record of dpsRecords) {
-    const playerKey = `${record.playerName}-${record.playerClass}`
+    // Criar um mapa para armazenar jogadores por nome e classe
+    const playerMap: Record<string, Record<string, Player>> = {}
 
-    if (!playerMap[playerKey]) {
-      playerMap[playerKey] = {
-        _id: generateId(),
-        playerBaseId: record.playerBaseId,
-        name: record.playerName,
-        guild: "INFERNUS", // Valor padrão
-        class: record.playerClass,
-        avgDps: "0",
-        maxDps: "0",
-        avgRating: "0",
-        isHealer: record.isHeal,
+    // Processar todos os registros de DPS
+    for (const record of dpsRecords) {
+      const playerKey = `${record.playerName}-${record.playerClass}`
+
+      if (!playerMap[playerKey]) {
+        playerMap[playerKey] = {
+          _id: String(Date.now()),
+          playerBaseId: record.playerBaseId,
+          name: record.playerName,
+          guild: "INFERNUS", // Valor padrão
+          class: record.playerClass,
+          avgDps: "0",
+          maxDps: "0",
+          avgRating: "0",
+          isHealer: record.isHeal,
+        }
       }
+
+      // Acumular dados para cálculo de médias
+      const player = playerMap[playerKey]
+      const records = dpsRecords.filter(
+        (r) => r.playerName === record.playerName && r.playerClass === record.playerClass,
+      )
+
+      // Calcular médias e máximos
+      const totalDps = records.reduce((sum, r) => sum + r.dps, 0)
+      const totalRating = records.reduce((sum, r) => sum + r.rating, 0)
+      const maxDps = Math.max(...records.map((r) => r.dps))
+
+      player.avgDps = (totalDps / records.length).toFixed(0)
+      player.maxDps = maxDps.toString()
+      player.avgRating = (totalRating / records.length).toFixed(1)
     }
 
-    // Acumular dados para cálculo de médias
-    const player = playerMap[playerKey]
-    const records = dpsRecords.filter((r) => r.playerName === record.playerName && r.playerClass === record.playerClass)
-
-    // Calcular médias e máximos
-    const totalDps = records.reduce((sum, r) => sum + r.dps, 0)
-    const totalRating = records.reduce((sum, r) => sum + r.rating, 0)
-    const maxDps = Math.max(...records.map((r) => r.dps))
-
-    player.avgDps = (totalDps / records.length).toFixed(0)
-    player.maxDps = maxDps.toString()
-    player.avgRating = (totalRating / records.length).toFixed(1)
+    // Converter o mapa em uma lista
+    return Object.values(playerMap)
+  } catch (error) {
+    console.error("Error getting players grouped by class:", error)
+    return []
   }
-
-  // Converter o mapa em uma lista
-  return Object.values(playerMap)
 }
 
-export async function createPlayer(player: Player) {
-  const newPlayer = { ...player, _id: generateId() }
-  players.push(newPlayer)
-  // Atualizar timestamp
-  lastDataUpdate = Date.now()
-  return newPlayer
-}
+export async function createPlayer(player: Player): Promise<Player> {
+  try {
+    const newPlayer = await prisma.player.create({
+      data: {
+        playerBaseId: player.playerBaseId,
+        name: player.name,
+        guild: player.guild,
+        class: player.class,
+        avgDps: player.avgDps,
+        maxDps: player.maxDps,
+        avgRating: player.avgRating,
+        isHealer: player.isHealer,
+      },
+    })
 
-export async function updatePlayer(id: string, player: Partial<Player>) {
-  const index = players.findIndex((p) => p._id === id)
-  if (index !== -1) {
-    players[index] = { ...players[index], ...player }
     // Atualizar timestamp
     lastDataUpdate = Date.now()
-    return players[index]
+
+    return convertPrismaPlayer(newPlayer)
+  } catch (error) {
+    console.error("Error creating player:", error)
+    throw error
   }
-  return null
 }
 
-export async function deletePlayer(id: string) {
-  players = players.filter((player) => player._id !== id)
-  // Atualizar timestamp
-  lastDataUpdate = Date.now()
-  return { success: true }
+export async function updatePlayer(id: string, player: Partial<Player>): Promise<Player | null> {
+  try {
+    const updatedPlayer = await prisma.player.update({
+      where: { id },
+      data: player,
+    })
+
+    // Atualizar timestamp
+    lastDataUpdate = Date.now()
+
+    return convertPrismaPlayer(updatedPlayer)
+  } catch (error) {
+    console.error("Error updating player:", error)
+    return null
+  }
+}
+
+export async function deletePlayer(id: string): Promise<{ success: boolean }> {
+  try {
+    await prisma.player.delete({
+      where: { id },
+    })
+
+    // Atualizar timestamp
+    lastDataUpdate = Date.now()
+
+    return { success: true }
+  } catch (error) {
+    console.error("Error deleting player:", error)
+    return { success: false }
+  }
 }
 
 // Funções para DpsRecords
-export async function getDpsRecords() {
-  return dpsRecords
+export async function getDpsRecords(): Promise<DpsRecord[]> {
+  try {
+    const records = await prisma.dpsRecord.findMany()
+    return records.map(convertPrismaDpsRecord)
+  } catch (error) {
+    console.error("Error fetching DPS records:", error)
+    return []
+  }
 }
 
-export async function getDpsRecordById(id: string) {
-  return dpsRecords.find((record) => record._id === id) || null
+export async function getDpsRecordById(id: string): Promise<DpsRecord | null> {
+  try {
+    const record = await prisma.dpsRecord.findUnique({
+      where: { id },
+    })
+    return record ? convertPrismaDpsRecord(record) : null
+  } catch (error) {
+    console.error("Error fetching DPS record by ID:", error)
+    return null
+  }
 }
 
-export async function getDpsRecordsByPlayerId(playerId: number) {
-  return dpsRecords.filter((record) => record.playerId === playerId)
+export async function getDpsRecordsByPlayerId(playerId: number): Promise<DpsRecord[]> {
+  try {
+    const records = await prisma.dpsRecord.findMany({
+      where: { playerId },
+    })
+    return records.map(convertPrismaDpsRecord)
+  } catch (error) {
+    console.error("Error fetching DPS records by player ID:", error)
+    return []
+  }
 }
 
-export async function createDpsRecord(record: DpsRecord) {
-  const newRecord = { ...record, _id: generateId() }
-  dpsRecords.push(newRecord)
-  // Atualizar timestamp
-  lastDataUpdate = Date.now()
-  return newRecord
-}
+export async function createDpsRecord(record: DpsRecord): Promise<DpsRecord> {
+  try {
+    const newRecord = await prisma.dpsRecord.create({
+      data: {
+        playerId: record.playerId,
+        playerBaseId: record.playerBaseId,
+        playerName: record.playerName,
+        playerClass: record.playerClass,
+        dps: record.dps,
+        rating: record.rating,
+        date: record.date,
+        huntType: record.huntType,
+        isHeal: record.isHeal,
+      },
+    })
 
-export async function updateDpsRecord(id: string, record: Partial<DpsRecord>) {
-  const index = dpsRecords.findIndex((r) => r._id === id)
-  if (index !== -1) {
-    dpsRecords[index] = { ...dpsRecords[index], ...record }
     // Atualizar timestamp
     lastDataUpdate = Date.now()
-    return dpsRecords[index]
+
+    return convertPrismaDpsRecord(newRecord)
+  } catch (error) {
+    console.error("Error creating DPS record:", error)
+    throw error
   }
-  return null
 }
 
-export async function deleteDpsRecord(id: string) {
-  dpsRecords = dpsRecords.filter((record) => record._id !== id)
-  // Atualizar timestamp
-  lastDataUpdate = Date.now()
-  return { success: true }
+export async function updateDpsRecord(id: string, record: Partial<DpsRecord>): Promise<DpsRecord | null> {
+  try {
+    const updatedRecord = await prisma.dpsRecord.update({
+      where: { id },
+      data: record,
+    })
+
+    // Atualizar timestamp
+    lastDataUpdate = Date.now()
+
+    return convertPrismaDpsRecord(updatedRecord)
+  } catch (error) {
+    console.error("Error updating DPS record:", error)
+    return null
+  }
 }
 
-export async function clearAllData() {
-  players = []
-  dpsRecords = []
-  // Atualizar timestamp
-  lastDataUpdate = Date.now()
-  return { success: true }
+export async function deleteDpsRecord(id: string): Promise<{ success: boolean }> {
+  try {
+    await prisma.dpsRecord.delete({
+      where: { id },
+    })
+
+    // Atualizar timestamp
+    lastDataUpdate = Date.now()
+
+    return { success: true }
+  } catch (error) {
+    console.error("Error deleting DPS record:", error)
+    return { success: false }
+  }
+}
+
+export async function clearAllData(): Promise<{ success: boolean }> {
+  try {
+    // Deletar todos os registros
+    await prisma.dpsRecord.deleteMany({})
+    await prisma.player.deleteMany({})
+
+    // Atualizar timestamp
+    lastDataUpdate = Date.now()
+
+    return { success: true }
+  } catch (error) {
+    console.error("Error clearing all data:", error)
+    return { success: false }
+  }
 }
 
 // Importar dados de exemplo (apenas quando solicitado explicitamente)
 import { samplePlayers, sampleDpsRecords } from "./sample-data"
 
-export async function initializeSampleData() {
-  // Resetar os dados para os exemplos originais
-  players = samplePlayers.map((player) => ({
-    ...player,
-    _id: generateId(),
-  }))
+export async function initializeSampleData(): Promise<{ success: boolean }> {
+  try {
+    // Limpar dados existentes
+    await clearAllData()
 
-  dpsRecords = sampleDpsRecords.map((record) => ({
-    ...record,
-    _id: generateId(),
-  }))
+    // Inserir jogadores de exemplo
+    for (const player of samplePlayers) {
+      await prisma.player.create({
+        data: {
+          playerBaseId: player.playerBaseId,
+          name: player.name,
+          guild: player.guild,
+          class: player.class,
+          avgDps: player.avgDps,
+          maxDps: player.maxDps,
+          avgRating: player.avgRating,
+          isHealer: player.isHealer,
+        },
+      })
+    }
 
-  // Atualizar timestamp
-  lastDataUpdate = Date.now()
-  return { success: true }
+    // Inserir registros de DPS de exemplo
+    for (const record of sampleDpsRecords) {
+      await prisma.dpsRecord.create({
+        data: {
+          playerId: record.playerId,
+          playerBaseId: record.playerBaseId,
+          playerName: record.playerName,
+          playerClass: record.playerClass,
+          dps: record.dps,
+          rating: record.rating,
+          date: record.date,
+          huntType: record.huntType,
+          isHeal: record.isHeal,
+        },
+      })
+    }
+
+    // Atualizar timestamp
+    lastDataUpdate = Date.now()
+
+    return { success: true }
+  } catch (error) {
+    console.error("Error initializing sample data:", error)
+    return { success: false }
+  }
 }
 

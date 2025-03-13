@@ -16,6 +16,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import type { Player } from "@/lib/db"
 
+// Importe o componente DBStatus
+import { DBStatus } from "@/components/db-status"
+
 export default function AdminDashboard() {
   const router = useRouter()
   const [players, setPlayers] = useState<Player[]>([])
@@ -369,6 +372,10 @@ export default function AdminDashboard() {
                   <Trash2 className="mr-2 h-4 w-4" />
                   Limpar Todos os Dados
                 </Button>
+                {/* Dentro do componente Card com ações rápidas, adicione: */}
+                <div className="mt-2 pt-2 border-t border-gray-800">
+                  <DBStatus />
+                </div>
               </CardContent>
             </Card>
           </div>
