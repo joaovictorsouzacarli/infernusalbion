@@ -20,11 +20,10 @@ export default function AdminDashboard() {
   const [searchText, setSearchText] = useState("")
   const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([])
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
-  const timestamp = Date.now()
 
   // Verificar autenticação
   useEffect(() => {
@@ -47,6 +46,7 @@ export default function AdminDashboard() {
       const response = await fetch(`/api/players?t=${Date.now()}`)
       if (response.ok) {
         const data = await response.json()
+        console.log("Dados recebidos:", data)
         setPlayers(data)
         setFilteredPlayers(data)
       } else {
@@ -83,23 +83,26 @@ export default function AdminDashboard() {
     router.push("/")
   }
 
-  // Função para testar a conexão com o MongoDB
-  const testMongoDBConnection = async () => {
+  // Função para excluir jogador
+  const handleDeletePlayer = async (id: string) => {
     try {
-      setIsLoading(true)
-      const response = await fetch("/api/test-mongodb")
-      const data = await response.json()
+      setIsDeleting(id)
+      const response = await fetch(`/api/players/${id}`, {
+        method: "DELETE",
+      })
 
-      if (data.success) {
-        setSuccess(`Conexão com MongoDB estabelecida com sucesso! Total de jogadores: ${data.playerCount}`)
+      if (response.ok) {
+        setSuccess("Jogador excluído com sucesso!")
+        fetchData() // Recarregar a lista após excluir
       } else {
-        setError(`Erro na conexão com MongoDB: ${data.error}`)
+        const data = await response.json()
+        setError(data.error || "Erro ao excluir jogador")
       }
     } catch (error) {
-      console.error("Erro ao testar conexão:", error)
-      setError("Erro ao testar conexão com MongoDB")
+      console.error("Erro ao excluir jogador:", error)
+      setError("Erro ao excluir jogador")
     } finally {
-      setIsLoading(false)
+      setIsDeleting(null)
     }
   }
 
@@ -121,13 +124,7 @@ export default function AdminDashboard() {
       <header className="sticky top-0 z-10 bg-black border-b border-yellow-600">
         <div className="container flex h-16 items-center justify-between py-4">
           <div className="flex items-center gap-2">
-            <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SWAP_4.png-1E01OYWrRQZhycLojFhDgjHeUCjw8l.jpeg"
-              width={40}
-              height={40}
-              alt="Infernus Logo"
-              className="rounded-md"
-            />
+            <Image src="/logo.png" width={40} height={40} alt="Infernus Logo" className="rounded-md" />
             <h1 className="text-xl font-bold text-yellow-500">INFERNUS CAÇADAS - ADMIN</h1>
           </div>
           <div className="flex items-center gap-4">
@@ -135,7 +132,7 @@ export default function AdminDashboard() {
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </Button>
-            <Link href={`/?t=${timestamp}`}>
+            <Link href="/">
               <Button variant="outline" size="sm" className="border-yellow-600 text-yellow-500">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar ao site
@@ -194,15 +191,6 @@ export default function AdminDashboard() {
                   <Plus className="mr-2 h-4 w-4" />
                   {showAddForm ? "Ocultar Formulário" : "Adicionar Jogador"}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-yellow-600 text-yellow-500 hover:bg-yellow-900/20"
-                  onClick={testMongoDBConnection}
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Testar Conexão MongoDB
-                </Button>
                 <div className="mt-2 pt-2 border-t border-gray-800">
                   <DBStatus />
                 </div>
@@ -244,11 +232,8 @@ export default function AdminDashboard() {
                     </thead>
                     <tbody>
                       {filteredPlayers.length > 0 ? (
-                        filteredPlayers.map((player, index) => (
-                          <tr
-                            key={player.id || player._id || index}
-                            className="border-b border-yellow-900/30 hover:bg-black/40"
-                          >
+                        filteredPlayers.map((player) => (
+                          <tr key={player.id || player._id} className="border-b border-yellow-900/30 hover:bg-black/40">
                             <td className="px-4 py-3 text-sm font-medium text-white">{player.name}</td>
                             <td className="px-4 py-3 text-sm text-gray-300">{player.class}</td>
                             <td className="px-4 py-3 text-sm font-medium text-yellow-500">
@@ -262,11 +247,15 @@ export default function AdminDashboard() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => {}}
-                                disabled={isDeleting}
+                                onClick={() => handleDeletePlayer(player.id || player._id)}
+                                disabled={isDeleting === (player.id || player._id)}
                                 className="border-red-600 text-red-400 hover:bg-red-900/20"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                {isDeleting === (player.id || player._id) ? (
+                                  <RefreshCw className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
                                 <span className="sr-only">Excluir</span>
                               </Button>
                             </td>

@@ -9,13 +9,7 @@ export default function Home() {
       <header className="border-b border-yellow-600">
         <div className="container flex h-16 items-center justify-between py-4">
           <div className="flex items-center gap-2">
-            <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SWAP_4.png-1E01OYWrRQZhycLojFhDgjHeUCjw8l.jpeg"
-              width={40}
-              height={40}
-              alt="Infernus Logo"
-              className="rounded-md"
-            />
+            <Image src="/logo.png" width={40} height={40} alt="Infernus Logo" className="rounded-md" />
             <h1 className="text-xl font-bold text-yellow-500">INFERNUS CAÇADAS</h1>
           </div>
           <div className="flex items-center gap-4">
@@ -150,7 +144,7 @@ export default function Home() {
               </Card>
             </div>
 
-            <div className="mt-8">
+            <div className="mt-8 flex justify-center">
               <Link href="/estatisticas">
                 <Button className="bg-yellow-600 hover:bg-yellow-700 text-black">Ver estatísticas detalhadas</Button>
               </Link>

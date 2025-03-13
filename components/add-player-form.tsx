@@ -35,7 +35,6 @@ export function AddPlayerForm() {
 
   const [formData, setFormData] = useState({
     name: "",
-    guild: "INFERNUS",
     class: "",
     avgDps: "0",
     maxDps: "0",
@@ -68,7 +67,7 @@ export function AddPlayerForm() {
         throw new Error("Nome e classe são obrigatórios")
       }
 
-      // Enviar dados para a API
+      // Enviar dados para a API - adicionando guild="INFERNUS" automaticamente
       const response = await fetch("/api/players", {
         method: "POST",
         headers: {
@@ -76,6 +75,7 @@ export function AddPlayerForm() {
         },
         body: JSON.stringify({
           ...formData,
+          guild: "INFERNUS", // Adicionado automaticamente
           playerBaseId: Date.now(),
         }),
       })
@@ -89,7 +89,6 @@ export function AddPlayerForm() {
       // Limpar formulário e mostrar sucesso
       setFormData({
         name: "",
-        guild: "INFERNUS",
         class: "",
         avgDps: "0",
         maxDps: "0",
@@ -100,12 +99,6 @@ export function AddPlayerForm() {
 
       // Atualizar a lista de jogadores
       router.refresh()
-
-      // Testar a conexão com o MongoDB
-      await fetch("/api/test-mongodb")
-        .then((res) => res.json())
-        .then((data) => console.log("Teste de conexão:", data))
-        .catch((err) => console.error("Erro no teste de conexão:", err))
     } catch (err) {
       console.error("Erro ao adicionar jogador:", err)
       setError(err instanceof Error ? err.message : "Erro desconhecido ao adicionar jogador")
@@ -142,17 +135,6 @@ export function AddPlayerForm() {
                 onChange={handleChange}
                 className="bg-gray-800 border-gray-700 text-white"
                 required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="guild">Guilda</Label>
-              <Input
-                id="guild"
-                name="guild"
-                value={formData.guild}
-                onChange={handleChange}
-                className="bg-gray-800 border-gray-700 text-white"
               />
             </div>
 

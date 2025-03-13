@@ -38,4 +38,3 @@ model DpsRecord {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
-
