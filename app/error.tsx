@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect } from "react"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle } from "lucide-react"
+import Link from "next/link"
 
 export default function Error({
   error,
@@ -13,7 +13,7 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error(error)
+    console.error("Erro no painel admin:", error)
   }, [error])
 
   return (

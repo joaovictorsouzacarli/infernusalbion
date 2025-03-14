@@ -28,21 +28,39 @@ export default function AdminDashboard() {
 
   // Verificar autenticação
   useEffect(() => {
-    if (!isAuthenticated()) {
-      const currentPath = window.location.pathname
-      router.push(`/admin/login?from=${currentPath}`)
-    } else {
-      setIsAuthenticated(true)
-      setLoggedInUser(getLoggedInUser())
-      fetchData()
+    const checkAuth = async () => {
+      try {
+        const isAuth = isAuthenticated()
+        console.log("Status de autenticação:", isAuth)
+
+        if (!isAuth) {
+          const currentPath = window.location.pathname
+          console.log("Redirecionando para login:", `/admin/login?from=${currentPath}`)
+          router.push(`/admin/login?from=${currentPath}`)
+          return
+        }
+
+        setIsAuthenticated(true)
+        const user = getLoggedInUser()
+        console.log("Usuário logado:", user)
+        setLoggedInUser(user)
+        await fetchData()
+      } catch (error) {
+        console.error("Erro na verificação de autenticação:", error)
+        setError("Erro na verificação de autenticação")
+      }
     }
+
+    checkAuth()
   }, [router])
 
   // Função para buscar dados
   const fetchData = async () => {
     try {
       setIsLoading(true)
-      // Adicionando um timestamp para evitar cache
+      setError(null)
+
+      console.log("Iniciando busca de dados...")
       const response = await fetch(`/api/players?t=${Date.now()}`, {
         cache: "no-store",
         headers: {
@@ -52,17 +70,17 @@ export default function AdminDashboard() {
         },
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        console.log(`Painel Admin: Recebidos ${data.length} jogadores da API`)
-        setPlayers(data)
-        setFilteredPlayers(data)
-      } else {
-        setError("Falha ao carregar dados")
+      if (!response.ok) {
+        throw new Error(`Erro na resposta da API: ${response.status}`)
       }
+
+      const data = await response.json()
+      console.log(`Painel Admin: Recebidos ${data.length} jogadores da API`)
+      setPlayers(data)
+      setFilteredPlayers(data)
     } catch (error) {
       console.error("Erro ao buscar dados:", error)
-      setError("Erro ao carregar dados")
+      setError("Erro ao carregar dados. Por favor, tente novamente.")
     } finally {
       setIsLoading(false)
     }
@@ -70,62 +88,90 @@ export default function AdminDashboard() {
 
   // Filtrar jogadores quando o texto de busca mudar
   useEffect(() => {
-    if (!searchText.trim()) {
-      setFilteredPlayers(players)
-      return
+    try {
+      if (!searchText.trim()) {
+        setFilteredPlayers(players)
+        return
+      }
+
+      const filtered = players.filter(
+        (player) =>
+          player.name.toLowerCase().includes(searchText.toLowerCase()) ||
+          player.class.toLowerCase().includes(searchText.toLowerCase()),
+      )
+
+      setFilteredPlayers(filtered)
+    } catch (error) {
+      console.error("Erro ao filtrar jogadores:", error)
+      setError("Erro ao filtrar jogadores")
     }
-
-    const filtered = players.filter(
-      (player) =>
-        player.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        player.class.toLowerCase().includes(searchText.toLowerCase()),
-    )
-
-    setFilteredPlayers(filtered)
   }, [searchText, players])
 
   // Função para sair
   const handleLogout = () => {
-    logout()
-    router.push("/")
+    try {
+      logout()
+      router.push("/")
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error)
+      setError("Erro ao fazer logout")
+    }
   }
 
   // Função para excluir jogador
   const handleDeletePlayer = async (id: string) => {
     try {
       setIsDeleting(id)
+      setError(null)
+
       const response = await fetch(`/api/players/${id}`, {
         method: "DELETE",
       })
 
-      if (response.ok) {
-        setSuccess("Jogador excluído com sucesso!")
-        fetchData() // Recarregar a lista após excluir
-      } else {
+      if (!response.ok) {
         const data = await response.json()
-        setError(data.error || "Erro ao excluir jogador")
+        throw new Error(data.error || "Erro ao excluir jogador")
       }
+
+      setSuccess("Jogador excluído com sucesso!")
+      await fetchData()
     } catch (error) {
       console.error("Erro ao excluir jogador:", error)
-      setError("Erro ao excluir jogador")
+      setError(error instanceof Error ? error.message : "Erro ao excluir jogador")
     } finally {
       setIsDeleting(null)
     }
   }
 
-  if (!isAuthenticated) return null
-
+  // Renderizar loading state
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
         <div className="text-center">
-          <div className="mb-4 text-yellow-500 text-xl">Carregando...</div>
-          <div className="text-gray-400 text-sm">Aguarde enquanto os dados do painel são carregados</div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mx-auto mb-4"></div>
+          <div className="text-yellow-500 text-xl">Carregando...</div>
+          <div className="text-gray-400 text-sm mt-2">Aguarde enquanto os dados do painel são carregados</div>
         </div>
       </div>
     )
   }
 
+  // Renderizar erro de autenticação
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <div className="text-center">
+          <div className="text-yellow-500 text-xl mb-4">Acesso Restrito</div>
+          <div className="text-gray-400 text-sm mb-4">Você precisa estar autenticado para acessar esta página.</div>
+          <Link href="/admin/login">
+            <Button className="bg-yellow-600 hover:bg-yellow-700 text-black">Fazer Login</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  // Renderizar conteúdo principal
   return (
     <div className="flex min-h-screen flex-col bg-black/95 text-white relative">
       <header className="sticky top-0 z-10 bg-black/90 border-b border-yellow-600/20 backdrop-blur-sm">
