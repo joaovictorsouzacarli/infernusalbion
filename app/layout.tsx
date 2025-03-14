@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <body>
         <div
-          className="fixed inset-0 bg-black"
+          className="fixed inset-0 bg-black pointer-events-none"
           style={{
             backgroundImage:
               'url("https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SWAP_4.png-l04aTeewk2gUJEdgU6w8gsKCKAtxlW.jpeg")',
@@ -25,10 +25,11 @@ export default function RootLayout({
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
             opacity: 0.05,
+            zIndex: 0,
           }}
         />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="infernus-theme">
-          {children}
+          <div className="relative z-10">{children}</div>
         </ThemeProvider>
       </body>
     </html>

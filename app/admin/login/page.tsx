@@ -58,9 +58,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-black/95 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-transparent p-4 relative z-20">
       <div className="w-full max-w-md">
-        <Card className="bg-gray-900 border-yellow-900/50">
+        <Card className="bg-gray-900/95 border-yellow-900/50 relative z-30">
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center mb-2">
               <img
@@ -89,7 +89,7 @@ export default function LoginPage() {
                   placeholder="Digite seu nome de usuário"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white"
+                  className="bg-gray-800 border-gray-700 text-white relative z-30"
                   required
                 />
               </div>
@@ -103,7 +103,7 @@ export default function LoginPage() {
                   placeholder="Digite sua senha"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white"
+                  className="bg-gray-800 border-gray-700 text-white relative z-30"
                   required
                 />
               </div>
@@ -117,7 +117,7 @@ export default function LoginPage() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="border-yellow-600/30 text-yellow-500 text-xs"
+                      className="border-yellow-600/30 text-yellow-500 text-xs relative z-30"
                       onClick={() => setAdminUser(admin.username)}
                     >
                       {admin.username}
@@ -129,13 +129,13 @@ export default function LoginPage() {
             <CardFooter className="flex flex-col gap-4">
               <Button
                 type="submit"
-                className="w-full bg-yellow-600 hover:bg-yellow-700 text-black"
+                className="w-full bg-yellow-600 hover:bg-yellow-700 text-black relative z-30"
                 disabled={isLoading}
               >
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>
               <Link href="/" className="w-full">
-                <Button variant="outline" className="w-full border-yellow-600/50 text-yellow-500">
+                <Button variant="outline" className="w-full border-yellow-600/50 text-yellow-500 relative z-30">
                   Voltar para o site
                 </Button>
               </Link>
