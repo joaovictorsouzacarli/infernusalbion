@@ -28,33 +28,41 @@ export default function LoginPage() {
     }
   }, [router, fromPath])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setIsLoading(true)
 
-    // Validar campos
-    if (!username.trim() || !password.trim()) {
-      setError("Preencha todos os campos")
-      setIsLoading(false)
-      return
-    }
+    try {
+      // Validar campos
+      if (!username.trim() || !password.trim()) {
+        throw new Error("Preencha todos os campos")
+      }
 
-    // Verificar credenciais
-    if (verifyCredentials(username, password)) {
-      // Login bem-sucedido
-      login(username)
-      router.push(fromPath)
-    } else {
-      // Login falhou
-      setError("Credenciais inválidas")
+      // Verificar credenciais
+      if (verifyCredentials(username, password)) {
+        // Login bem-sucedido
+        login(username)
+        router.push(fromPath)
+      } else {
+        throw new Error("Credenciais inválidas")
+      }
+    } catch (error) {
+      console.error("Erro no login:", error)
+      setError(error instanceof Error ? error.message : "Erro ao fazer login")
       setIsLoading(false)
     }
   }
 
   const setAdminUser = (adminUsername: string) => {
-    setUsername(adminUsername)
-    setPassword("admin123") // Todos têm a mesma senha
+    try {
+      setUsername(adminUsername)
+      setPassword("admin123") // Todos têm a mesma senha
+      setError(null) // Limpar erros anteriores
+    } catch (error) {
+      console.error("Erro ao selecionar usuário:", error)
+      setError("Erro ao selecionar usuário")
+    }
   }
 
   return (
