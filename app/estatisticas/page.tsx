@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,9 +11,13 @@ import type { Player } from "@/lib/db"
 import { SiteHeader } from "@/components/site-header"
 
 export default function EstatisticasPage() {
+  const searchParams = useSearchParams()
+  const playerParam = searchParams.get("player")
+  const tabParam = searchParams.get("tab")
+
   const [players, setPlayers] = useState<Player[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(playerParam || "")
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
   const [sameClassPlayers, setSameClassPlayers] = useState<Player[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -22,7 +27,14 @@ export default function EstatisticasPage() {
     const fetchPlayers = async () => {
       try {
         setIsLoading(true)
-        const res = await fetch("/api/players")
+        const res = await fetch("/api/players?t=" + Date.now(), {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        })
 
         if (!res.ok) {
           throw new Error("Falha ao carregar jogadores")
@@ -30,6 +42,15 @@ export default function EstatisticasPage() {
 
         const data = await res.json()
         setPlayers(data)
+
+        // Se tiver um parâmetro de jogador na URL, buscar esse jogador
+        if (playerParam) {
+          const foundPlayer = data.find((p) => p.name.toLowerCase() === playerParam.toLowerCase())
+
+          if (foundPlayer) {
+            handleSelectPlayer(foundPlayer)
+          }
+        }
       } catch (error) {
         console.error("Erro ao buscar jogadores:", error)
         setError("Erro ao carregar dados. Tente novamente mais tarde.")
@@ -39,7 +60,7 @@ export default function EstatisticasPage() {
     }
 
     fetchPlayers()
-  }, [])
+  }, [playerParam])
 
   // Filtrar jogadores com base na busca
   const filteredPlayers =
@@ -55,8 +76,10 @@ export default function EstatisticasPage() {
     const sameClass = players.filter((p) => p.class === player.class && p.id !== player.id && p._id !== player._id)
     setSameClassPlayers(sameClass)
 
-    // Limpar a busca
-    setSearchQuery("")
+    // Limpar a busca se não veio da URL
+    if (!playerParam) {
+      setSearchQuery("")
+    }
   }
 
   // Calcular posição no ranking
