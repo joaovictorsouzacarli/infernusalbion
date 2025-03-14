@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Trash2, RefreshCw, Plus, LogOut, ArrowLeft } from "lucide-react"
+import { Trash2, RefreshCw, Plus, LogOut, ArrowLeft, User } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { DBStatus } from "@/components/db-status"
 import { AddPlayerForm } from "@/components/add-player-form"
 import type { Player } from "@/lib/db"
+import { getLoggedInUser, logout } from "@/lib/auth"
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -19,6 +20,7 @@ export default function AdminDashboard() {
   const [searchText, setSearchText] = useState("")
   const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([])
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [loggedInUser, setLoggedInUser] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -26,14 +28,12 @@ export default function AdminDashboard() {
 
   // Verificar autenticação
   useEffect(() => {
-    const auth = localStorage.getItem("adminAuth")
-    const authCookie = document.cookie.includes("adminAuth=true")
-
-    if (!auth || !authCookie) {
+    if (!isAuthenticated()) {
       const currentPath = window.location.pathname
       router.push(`/admin/login?from=${currentPath}`)
     } else {
       setIsAuthenticated(true)
+      setLoggedInUser(getLoggedInUser())
       fetchData()
     }
   }, [router])
@@ -86,8 +86,7 @@ export default function AdminDashboard() {
 
   // Função para sair
   const handleLogout = () => {
-    localStorage.removeItem("adminAuth")
-    document.cookie = "adminAuth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    logout()
     router.push("/")
   }
 
@@ -140,6 +139,12 @@ export default function AdminDashboard() {
             <h1 className="text-xl font-bold text-yellow-500">INFERNUS - ADMIN</h1>
           </div>
           <div className="flex items-center gap-4">
+            {loggedInUser && (
+              <div className="flex items-center text-sm text-gray-400">
+                <User className="h-4 w-4 mr-1 text-yellow-500" />
+                <span>{loggedInUser}</span>
+              </div>
+            )}
             <Button variant="outline" size="sm" onClick={handleLogout} className="border-yellow-600 text-yellow-500">
               <LogOut className="mr-2 h-4 w-4" />
               Sair
