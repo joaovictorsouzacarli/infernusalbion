@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { DBStatus } from "@/components/db-status"
 import { AddPlayerForm } from "@/components/add-player-form"
 import type { Player } from "@/lib/db"
-import { getLoggedInUser, logout } from "@/lib/auth"
+import { getLoggedInUser, logout, isAuthenticated } from "@/lib/auth"
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -19,40 +19,49 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchText, setSearchText] = useState("")
   const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([])
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
+  const [isAuth, setIsAuth] = useState(false)
   const [loggedInUser, setLoggedInUser] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
 
-  // Verificar autenticação
+  // Verificar autenticação apenas uma vez no carregamento inicial
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = () => {
       try {
-        const isAuth = isAuthenticated()
-        console.log("Status de autenticação:", isAuth)
+        const auth = isAuthenticated()
+        console.log("Status de autenticação:", auth)
 
-        if (!isAuth) {
+        if (!auth) {
           const currentPath = window.location.pathname
           console.log("Redirecionando para login:", `/admin/login?from=${currentPath}`)
-          router.push(`/admin/login?from=${currentPath}`)
+          router.replace(`/admin/login?from=${currentPath}`)
           return
         }
 
-        setIsAuthenticated(true)
+        setIsAuth(true)
         const user = getLoggedInUser()
         console.log("Usuário logado:", user)
         setLoggedInUser(user)
-        await fetchData()
       } catch (error) {
         console.error("Erro na verificação de autenticação:", error)
         setError("Erro na verificação de autenticação")
+      } finally {
+        setAuthChecked(true)
       }
     }
 
     checkAuth()
   }, [router])
+
+  // Buscar dados apenas quando autenticado
+  useEffect(() => {
+    if (isAuth && authChecked) {
+      fetchData()
+    }
+  }, [isAuth, authChecked])
 
   // Função para buscar dados
   const fetchData = async () => {
@@ -88,30 +97,25 @@ export default function AdminDashboard() {
 
   // Filtrar jogadores quando o texto de busca mudar
   useEffect(() => {
-    try {
-      if (!searchText.trim()) {
-        setFilteredPlayers(players)
-        return
-      }
-
-      const filtered = players.filter(
-        (player) =>
-          player.name.toLowerCase().includes(searchText.toLowerCase()) ||
-          player.class.toLowerCase().includes(searchText.toLowerCase()),
-      )
-
-      setFilteredPlayers(filtered)
-    } catch (error) {
-      console.error("Erro ao filtrar jogadores:", error)
-      setError("Erro ao filtrar jogadores")
+    if (!searchText.trim()) {
+      setFilteredPlayers(players)
+      return
     }
+
+    const filtered = players.filter(
+      (player) =>
+        player.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        player.class.toLowerCase().includes(searchText.toLowerCase()),
+    )
+
+    setFilteredPlayers(filtered)
   }, [searchText, players])
 
   // Função para sair
   const handleLogout = () => {
     try {
       logout()
-      router.push("/")
+      router.replace("/")
     } catch (error) {
       console.error("Erro ao fazer logout:", error)
       setError("Erro ao fazer logout")
@@ -143,35 +147,38 @@ export default function AdminDashboard() {
     }
   }
 
-  // Renderizar loading state
+  // Se ainda não verificou a autenticação, mostrar loading
+  if (!authChecked) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mx-auto mb-4"></div>
+          <div className="text-yellow-500 text-xl">Verificando acesso...</div>
+          <div className="text-gray-400 text-sm mt-2">Aguarde um momento</div>
+        </div>
+      </div>
+    )
+  }
+
+  // Se não está autenticado após a verificação, não renderizar nada (redirecionamento já foi feito)
+  if (!isAuth) {
+    return null
+  }
+
+  // Renderizar loading state durante carregamento dos dados
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500 mx-auto mb-4"></div>
-          <div className="text-yellow-500 text-xl">Carregando...</div>
+          <div className="text-yellow-500 text-xl">Carregando dados...</div>
           <div className="text-gray-400 text-sm mt-2">Aguarde enquanto os dados do painel são carregados</div>
         </div>
       </div>
     )
   }
 
-  // Renderizar erro de autenticação
-  if (!isAuthenticated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
-        <div className="text-center">
-          <div className="text-yellow-500 text-xl mb-4">Acesso Restrito</div>
-          <div className="text-gray-400 text-sm mb-4">Você precisa estar autenticado para acessar esta página.</div>
-          <Link href="/admin/login">
-            <Button className="bg-yellow-600 hover:bg-yellow-700 text-black">Fazer Login</Button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  // Renderizar conteúdo principal
+  // Rest of the component remains the same...
   return (
     <div className="flex min-h-screen flex-col bg-black/95 text-white relative">
       <header className="sticky top-0 z-10 bg-black/90 border-b border-yellow-600/20 backdrop-blur-sm">
