@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { verifyCredentials, login, isAuthenticated } from "@/lib/auth"
+import { verifyCredentials, login, isAuthenticated, ADMIN_USERS } from "@/lib/auth"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -50,6 +50,11 @@ export default function LoginPage() {
       setError("Credenciais inválidas")
       setIsLoading(false)
     }
+  }
+
+  const setAdminUser = (adminUsername: string) => {
+    setUsername(adminUsername)
+    setPassword("admin123") // Todos têm a mesma senha
   }
 
   return (
@@ -101,6 +106,24 @@ export default function LoginPage() {
                   className="bg-gray-800 border-gray-700 text-white"
                   required
                 />
+              </div>
+
+              <div className="pt-2">
+                <p className="text-sm text-gray-400 mb-2">Administradores disponíveis:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {ADMIN_USERS.map((admin) => (
+                    <Button
+                      key={admin.username}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="border-yellow-600/30 text-yellow-500 text-xs"
+                      onClick={() => setAdminUser(admin.username)}
+                    >
+                      {admin.username}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">

@@ -20,11 +20,8 @@ export const ADMIN_USERS = [
 
 // Função para verificar credenciais
 export function verifyCredentials(username: string, password: string): boolean {
-  // Converter para minúsculas para comparação não sensível a maiúsculas/minúsculas
-  const normalizedUsername = username.trim()
-
   // Verificar se as credenciais correspondem a algum administrador
-  return ADMIN_USERS.some((admin) => admin.username === normalizedUsername && admin.password === password)
+  return ADMIN_USERS.some((admin) => admin.username === username && admin.password === password)
 }
 
 // Função para obter o nome de usuário do localStorage
