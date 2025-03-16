@@ -117,37 +117,53 @@ export async function getPlayersGroupedByClass(): Promise<Player[]> {
 
     // Processar todos os registros de DPS
     for (const record of dpsRecords) {
-      const playerKey = `${record.playerName}-${record.playerClass}`
+      try {
+        const playerKey = `${record.playerName}-${record.playerClass}`
 
-      if (!playerMap[playerKey]) {
-        playerMap[playerKey] = {
-          _id: String(Date.now()),
-          id: String(Date.now()),
-          playerBaseId: record.playerBaseId,
-          name: record.playerName,
-          guild: "INFERNUS", // Valor padrão
-          class: record.playerClass,
-          avgDps: "0",
-          maxDps: "0",
-          avgRating: "0",
-          isHealer: record.isHeal,
+        if (!playerMap[playerKey]) {
+          playerMap[playerKey] = {
+            _id: String(Date.now()),
+            id: String(Date.now()),
+            playerBaseId: record.playerBaseId,
+            name: record.playerName,
+            guild: "INFERNUS", // Valor padrão
+            class: record.playerClass,
+            avgDps: "0",
+            maxDps: "0",
+            avgRating: "0",
+            isHealer: record.isHeal,
+          }
         }
+
+        // Acumular dados para cálculo de médias
+        const player = playerMap[playerKey]
+        const records = dpsRecords.filter(
+          (r) => r.playerName === record.playerName && r.playerClass === record.playerClass,
+        )
+
+        // Verificar se há registros válidos antes de calcular
+        if (records.length > 0) {
+          // Garantir que todos os valores são números válidos
+          const validDpsValues = records.map((r) => Number(r.dps)).filter((val) => !isNaN(val) && isFinite(val))
+          const validRatingValues = records.map((r) => Number(r.rating)).filter((val) => !isNaN(val) && isFinite(val))
+
+          // Calcular médias e máximos apenas se houver valores válidos
+          if (validDpsValues.length > 0) {
+            const totalDps = validDpsValues.reduce((sum, val) => sum + val, 0)
+            const maxDps = Math.max(...validDpsValues)
+            player.avgDps = (totalDps / validDpsValues.length).toFixed(0)
+            player.maxDps = maxDps.toString()
+          }
+
+          if (validRatingValues.length > 0) {
+            const totalRating = validRatingValues.reduce((sum, val) => sum + val, 0)
+            player.avgRating = (totalRating / validRatingValues.length).toFixed(1)
+          }
+        }
+      } catch (recordError) {
+        console.error("Erro ao processar registro individual:", recordError, "Registro:", record)
+        // Continuar com o próximo registro
       }
-
-      // Acumular dados para cálculo de médias
-      const player = playerMap[playerKey]
-      const records = dpsRecords.filter(
-        (r) => r.playerName === record.playerName && r.playerClass === record.playerClass,
-      )
-
-      // Calcular médias e máximos
-      const totalDps = records.reduce((sum, r) => sum + r.dps, 0)
-      const totalRating = records.reduce((sum, r) => sum + r.rating, 0)
-      const maxDps = Math.max(...records.map((r) => r.dps))
-
-      player.avgDps = (totalDps / records.length).toFixed(0)
-      player.maxDps = maxDps.toString()
-      player.avgRating = (totalRating / records.length).toFixed(1)
     }
 
     // Converter o mapa em uma lista
@@ -259,14 +275,18 @@ export async function getDpsRecordsByPlayerId(playerId: number): Promise<DpsReco
 
 export async function createDpsRecord(record: DpsRecord): Promise<DpsRecord> {
   try {
+    // Garantir que os valores numéricos sejam válidos
+    const dps = typeof record.dps === "number" && !isNaN(record.dps) ? record.dps : 0
+    const rating = typeof record.rating === "number" && !isNaN(record.rating) ? record.rating : 0
+
     const newRecord = await prisma.dpsRecord.create({
       data: {
         playerId: record.playerId,
         playerBaseId: record.playerBaseId,
         playerName: record.playerName,
         playerClass: record.playerClass,
-        dps: record.dps,
-        rating: record.rating,
+        dps: dps,
+        rating: rating,
         date: record.date,
         huntType: record.huntType,
         isHeal: record.isHeal,
