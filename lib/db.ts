@@ -106,68 +106,12 @@ export async function getPlayerByBaseId(playerBaseId: number): Promise<Player | 
   }
 }
 
-// Função para obter jogadores agrupados por classe
+// Função simplificada para obter jogadores agrupados por classe
 export async function getPlayersGroupedByClass(): Promise<Player[]> {
   try {
-    // Buscar todos os registros de DPS
-    const dpsRecords = await getDpsRecords()
-
-    // Criar um mapa para armazenar jogadores por nome e classe
-    const playerMap: Record<string, Record<string, Player>> = {}
-
-    // Processar todos os registros de DPS
-    for (const record of dpsRecords) {
-      try {
-        const playerKey = `${record.playerName}-${record.playerClass}`
-
-        if (!playerMap[playerKey]) {
-          playerMap[playerKey] = {
-            _id: String(Date.now()),
-            id: String(Date.now()),
-            playerBaseId: record.playerBaseId,
-            name: record.playerName,
-            guild: "INFERNUS", // Valor padrão
-            class: record.playerClass,
-            avgDps: "0",
-            maxDps: "0",
-            avgRating: "0",
-            isHealer: record.isHeal,
-          }
-        }
-
-        // Acumular dados para cálculo de médias
-        const player = playerMap[playerKey]
-        const records = dpsRecords.filter(
-          (r) => r.playerName === record.playerName && r.playerClass === record.playerClass,
-        )
-
-        // Verificar se há registros válidos antes de calcular
-        if (records.length > 0) {
-          // Garantir que todos os valores são números válidos
-          const validDpsValues = records.map((r) => Number(r.dps)).filter((val) => !isNaN(val) && isFinite(val))
-          const validRatingValues = records.map((r) => Number(r.rating)).filter((val) => !isNaN(val) && isFinite(val))
-
-          // Calcular médias e máximos apenas se houver valores válidos
-          if (validDpsValues.length > 0) {
-            const totalDps = validDpsValues.reduce((sum, val) => sum + val, 0)
-            const maxDps = Math.max(...validDpsValues)
-            player.avgDps = (totalDps / validDpsValues.length).toFixed(0)
-            player.maxDps = maxDps.toString()
-          }
-
-          if (validRatingValues.length > 0) {
-            const totalRating = validRatingValues.reduce((sum, val) => sum + val, 0)
-            player.avgRating = (totalRating / validRatingValues.length).toFixed(1)
-          }
-        }
-      } catch (recordError) {
-        console.error("Erro ao processar registro individual:", recordError, "Registro:", record)
-        // Continuar com o próximo registro
-      }
-    }
-
-    // Converter o mapa em uma lista
-    return Object.values(playerMap)
+    // Simplesmente retornar todos os jogadores em vez de tentar calcular médias
+    // Isso evita problemas com cálculos que podem estar causando erros
+    return await getPlayers()
   } catch (error) {
     console.error("Error getting players grouped by class:", error)
     return []
@@ -182,15 +126,20 @@ export async function createPlayer(player: Player): Promise<Player> {
     await prisma.$connect()
     console.log("Conexão com o banco estabelecida")
 
+    // Garantir que os valores são strings válidas
+    const avgDps = player.avgDps || "0"
+    const maxDps = player.maxDps || "0"
+    const avgRating = player.avgRating || "0"
+
     const newPlayer = await prisma.player.create({
       data: {
         playerBaseId: player.playerBaseId,
         name: player.name,
         guild: player.guild || "INFERNUS",
         class: player.class,
-        avgDps: player.avgDps,
-        maxDps: player.maxDps,
-        avgRating: player.avgRating,
+        avgDps: avgDps,
+        maxDps: maxDps,
+        avgRating: avgRating,
         isHealer: player.isHealer,
       },
     })
@@ -399,6 +348,71 @@ export async function initializeSampleData(): Promise<{ success: boolean }> {
     return { success: true }
   } catch (error) {
     console.error("Error initializing sample data:", error)
+    return { success: false }
+  }
+}
+
+// Função para atualizar médias de jogadores com base nos registros
+export async function updatePlayerAverages(): Promise<{ success: boolean }> {
+  try {
+    // Buscar todos os registros
+    const records = await getDpsRecords()
+
+    // Agrupar registros por jogador e classe
+    const recordsByPlayerClass: Record<string, DpsRecord[]> = {}
+
+    for (const record of records) {
+      const key = `${record.playerName}-${record.playerClass}`
+      if (!recordsByPlayerClass[key]) {
+        recordsByPlayerClass[key] = []
+      }
+      recordsByPlayerClass[key].push(record)
+    }
+
+    // Buscar todos os jogadores
+    const players = await getPlayers()
+
+    // Atualizar cada jogador
+    for (const player of players) {
+      const key = `${player.name}-${player.class}`
+      const playerRecords = recordsByPlayerClass[key] || []
+
+      if (playerRecords.length > 0) {
+        // Calcular médias de forma segura
+        let totalDps = 0
+        let totalRating = 0
+        let maxDps = 0
+
+        for (const record of playerRecords) {
+          const dps = typeof record.dps === "number" ? record.dps : 0
+          const rating = typeof record.rating === "number" ? record.rating : 0
+
+          totalDps += dps
+          totalRating += rating
+
+          if (dps > maxDps) {
+            maxDps = dps
+          }
+        }
+
+        const avgDps = (totalDps / playerRecords.length).toFixed(0)
+        const avgRating = (totalRating / playerRecords.length).toFixed(1)
+
+        // Atualizar jogador
+        await prisma.player.update({
+          where: { id: player.id as string },
+          data: {
+            avgDps: avgDps,
+            maxDps: maxDps.toString(),
+            avgRating: avgRating,
+          },
+        })
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error("Error updating player averages:", error)
     return { success: false }
   }
 }
