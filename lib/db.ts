@@ -1,13 +1,12 @@
-// Tipos
 import { prisma } from "./prisma"
 import type { Player as PrismaPlayer, DpsRecord as PrismaDpsRecord } from "@prisma/client"
 
 // Exportando uma variável para armazenar a última atualização
-export let lastDataUpdate = Date.now()
+export const lastDataUpdate = Date.now()
 
 export interface Player {
-  id?: string | number // Adicionando id como alternativa ao _id
-  _id?: string // Mantendo _id para compatibilidade
+  id?: string
+  _id?: string
   playerBaseId: number
   name: string
   guild: string
@@ -19,8 +18,8 @@ export interface Player {
 }
 
 export interface DpsRecord {
-  id?: string | number // Adicionando id como alternativa ao _id
-  _id?: string // Mantendo _id para compatibilidade
+  id?: string
+  _id?: string
   playerId: number
   playerBaseId: number
   playerName: string
@@ -35,8 +34,8 @@ export interface DpsRecord {
 // Função para converter um Player do Prisma para o formato da aplicação
 function convertPrismaPlayer(player: PrismaPlayer): Player {
   return {
-    _id: player.id, // Mapeando id do Prisma para _id
-    id: player.id, // Também mapeando para id
+    id: player.id,
+    _id: player.id,
     playerBaseId: player.playerBaseId,
     name: player.name,
     guild: player.guild,
@@ -51,8 +50,8 @@ function convertPrismaPlayer(player: PrismaPlayer): Player {
 // Função para converter um DpsRecord do Prisma para o formato da aplicação
 function convertPrismaDpsRecord(record: PrismaDpsRecord): DpsRecord {
   return {
-    _id: record.id, // Mapeando id do Prisma para _id
-    id: record.id, // Também mapeando para id
+    id: record.id,
+    _id: record.id,
     playerId: record.playerId,
     playerBaseId: record.playerBaseId,
     playerName: record.playerName,
@@ -65,16 +64,14 @@ function convertPrismaDpsRecord(record: PrismaDpsRecord): DpsRecord {
   }
 }
 
-// Funções para Players
+// Funções básicas para Players
 export async function getPlayers(): Promise<Player[]> {
   try {
-    console.log("Buscando todos os jogadores do banco de dados...")
     const players = await prisma.player.findMany({
       orderBy: {
         avgDps: "desc",
       },
     })
-    console.log(`Encontrados ${players.length} jogadores no banco de dados`)
     return players.map(convertPrismaPlayer)
   } catch (error) {
     console.error("Error fetching players:", error)
@@ -82,92 +79,24 @@ export async function getPlayers(): Promise<Player[]> {
   }
 }
 
-export async function getPlayerById(id: string): Promise<Player | null> {
-  try {
-    const player = await prisma.player.findUnique({
-      where: { id },
-    })
-    return player ? convertPrismaPlayer(player) : null
-  } catch (error) {
-    console.error("Error fetching player by ID:", error)
-    return null
-  }
-}
-
-export async function getPlayerByBaseId(playerBaseId: number): Promise<Player | null> {
-  try {
-    const player = await prisma.player.findFirst({
-      where: { playerBaseId },
-    })
-    return player ? convertPrismaPlayer(player) : null
-  } catch (error) {
-    console.error("Error fetching player by base ID:", error)
-    return null
-  }
-}
-
-// Função simplificada para obter jogadores agrupados por classe
-export async function getPlayersGroupedByClass(): Promise<Player[]> {
-  try {
-    // Simplesmente retornar todos os jogadores em vez de tentar calcular médias
-    // Isso evita problemas com cálculos que podem estar causando erros
-    return await getPlayers()
-  } catch (error) {
-    console.error("Error getting players grouped by class:", error)
-    return []
-  }
-}
-
 export async function createPlayer(player: Player): Promise<Player> {
   try {
-    console.log("Iniciando criação do jogador:", player)
-
-    // Verificar conexão com o banco
-    await prisma.$connect()
-    console.log("Conexão com o banco estabelecida")
-
-    // Garantir que os valores são strings válidas
-    const avgDps = player.avgDps || "0"
-    const maxDps = player.maxDps || "0"
-    const avgRating = player.avgRating || "0"
-
     const newPlayer = await prisma.player.create({
       data: {
         playerBaseId: player.playerBaseId,
         name: player.name,
         guild: player.guild || "INFERNUS",
         class: player.class,
-        avgDps: avgDps,
-        maxDps: maxDps,
-        avgRating: avgRating,
+        avgDps: player.avgDps || "0",
+        maxDps: player.maxDps || "0",
+        avgRating: player.avgRating || "0",
         isHealer: player.isHealer,
       },
     })
-
-    console.log("Jogador criado com sucesso:", newPlayer)
     return convertPrismaPlayer(newPlayer)
   } catch (error) {
-    console.error("Erro detalhado ao criar jogador:", error)
+    console.error("Error creating player:", error)
     throw error
-  } finally {
-    await prisma.$disconnect()
-  }
-}
-
-export async function updatePlayer(id: string, player: Partial<Player>): Promise<Player | null> {
-  try {
-    const updatedPlayer = await prisma.player.update({
-      where: { id },
-      data: player,
-    })
-
-    // Atualizar timestamp
-    lastDataUpdate = Date.now()
-
-    return convertPrismaPlayer(updatedPlayer)
-  } catch (error) {
-    console.error("Error updating player:", error)
-    return null
   }
 }
 
@@ -176,10 +105,6 @@ export async function deletePlayer(id: string): Promise<{ success: boolean }> {
     await prisma.player.delete({
       where: { id },
     })
-
-    // Atualizar timestamp
-    lastDataUpdate = Date.now()
-
     return { success: true }
   } catch (error) {
     console.error("Error deleting player:", error)
@@ -187,7 +112,7 @@ export async function deletePlayer(id: string): Promise<{ success: boolean }> {
   }
 }
 
-// Funções para DpsRecords
+// Funções básicas para DpsRecords
 export async function getDpsRecords(): Promise<DpsRecord[]> {
   try {
     const records = await prisma.dpsRecord.findMany()
@@ -198,74 +123,25 @@ export async function getDpsRecords(): Promise<DpsRecord[]> {
   }
 }
 
-export async function getDpsRecordById(id: string): Promise<DpsRecord | null> {
-  try {
-    const record = await prisma.dpsRecord.findUnique({
-      where: { id },
-    })
-    return record ? convertPrismaDpsRecord(record) : null
-  } catch (error) {
-    console.error("Error fetching DPS record by ID:", error)
-    return null
-  }
-}
-
-export async function getDpsRecordsByPlayerId(playerId: number): Promise<DpsRecord[]> {
-  try {
-    const records = await prisma.dpsRecord.findMany({
-      where: { playerId },
-    })
-    return records.map(convertPrismaDpsRecord)
-  } catch (error) {
-    console.error("Error fetching DPS records by player ID:", error)
-    return []
-  }
-}
-
 export async function createDpsRecord(record: DpsRecord): Promise<DpsRecord> {
   try {
-    // Garantir que os valores numéricos sejam válidos
-    const dps = typeof record.dps === "number" && !isNaN(record.dps) ? record.dps : 0
-    const rating = typeof record.rating === "number" && !isNaN(record.rating) ? record.rating : 0
-
     const newRecord = await prisma.dpsRecord.create({
       data: {
         playerId: record.playerId,
         playerBaseId: record.playerBaseId,
         playerName: record.playerName,
         playerClass: record.playerClass,
-        dps: dps,
-        rating: rating,
+        dps: record.dps,
+        rating: record.rating,
         date: record.date,
         huntType: record.huntType,
         isHeal: record.isHeal,
       },
     })
-
-    // Atualizar timestamp
-    lastDataUpdate = Date.now()
-
     return convertPrismaDpsRecord(newRecord)
   } catch (error) {
     console.error("Error creating DPS record:", error)
     throw error
-  }
-}
-
-export async function updateDpsRecord(id: string, record: Partial<DpsRecord>): Promise<DpsRecord | null> {
-  try {
-    const updatedRecord = await prisma.dpsRecord.update({
-      where: { id },
-      data: record,
-    })
-
-    // Atualizar timestamp
-    lastDataUpdate = Date.now()
-
-    return convertPrismaDpsRecord(updatedRecord)
-  } catch (error) {
-    console.error("Error updating DPS record:", error)
-    return null
   }
 }
 
@@ -274,10 +150,6 @@ export async function deleteDpsRecord(id: string): Promise<{ success: boolean }>
     await prisma.dpsRecord.delete({
       where: { id },
     })
-
-    // Atualizar timestamp
-    lastDataUpdate = Date.now()
-
     return { success: true }
   } catch (error) {
     console.error("Error deleting DPS record:", error)
@@ -285,29 +157,14 @@ export async function deleteDpsRecord(id: string): Promise<{ success: boolean }>
   }
 }
 
-export async function clearAllData(): Promise<{ success: boolean }> {
-  try {
-    // Deletar todos os registros
-    await prisma.dpsRecord.deleteMany({})
-    await prisma.player.deleteMany({})
-
-    // Atualizar timestamp
-    lastDataUpdate = Date.now()
-
-    return { success: true }
-  } catch (error) {
-    console.error("Error clearing all data:", error)
-    return { success: false }
-  }
-}
-
-// Importar dados de exemplo (apenas quando solicitado explicitamente)
+// Importar dados de exemplo
 import { samplePlayers, sampleDpsRecords } from "./sample-data"
 
 export async function initializeSampleData(): Promise<{ success: boolean }> {
   try {
     // Limpar dados existentes
-    await clearAllData()
+    await prisma.dpsRecord.deleteMany({})
+    await prisma.player.deleteMany({})
 
     // Inserir jogadores de exemplo
     for (const player of samplePlayers) {
@@ -342,9 +199,6 @@ export async function initializeSampleData(): Promise<{ success: boolean }> {
       })
     }
 
-    // Atualizar timestamp
-    lastDataUpdate = Date.now()
-
     return { success: true }
   } catch (error) {
     console.error("Error initializing sample data:", error)
@@ -352,67 +206,63 @@ export async function initializeSampleData(): Promise<{ success: boolean }> {
   }
 }
 
-// Função para atualizar médias de jogadores com base nos registros
 export async function updatePlayerAverages(): Promise<{ success: boolean }> {
   try {
-    // Buscar todos os registros
-    const records = await getDpsRecords()
-
-    // Agrupar registros por jogador e classe
-    const recordsByPlayerClass: Record<string, DpsRecord[]> = {}
-
-    for (const record of records) {
-      const key = `${record.playerName}-${record.playerClass}`
-      if (!recordsByPlayerClass[key]) {
-        recordsByPlayerClass[key] = []
-      }
-      recordsByPlayerClass[key].push(record)
-    }
+    console.log("Atualizando médias dos jogadores...")
 
     // Buscar todos os jogadores
-    const players = await getPlayers()
+    const players = await prisma.player.findMany()
 
-    // Atualizar cada jogador
     for (const player of players) {
-      const key = `${player.name}-${player.class}`
-      const playerRecords = recordsByPlayerClass[key] || []
+      // Buscar todos os registros de DPS para este jogador
+      const dpsRecords = await prisma.dpsRecord.findMany({
+        where: {
+          playerName: player.name,
+          playerClass: player.class,
+        },
+      })
 
-      if (playerRecords.length > 0) {
-        // Calcular médias de forma segura
+      if (dpsRecords.length > 0) {
+        // Calcular a média de DPS e Rating
         let totalDps = 0
         let totalRating = 0
-        let maxDps = 0
 
-        for (const record of playerRecords) {
-          const dps = typeof record.dps === "number" ? record.dps : 0
-          const rating = typeof record.rating === "number" ? record.rating : 0
-
-          totalDps += dps
-          totalRating += rating
-
-          if (dps > maxDps) {
-            maxDps = dps
-          }
+        for (const record of dpsRecords) {
+          totalDps += record.dps
+          totalRating += record.rating
         }
 
-        const avgDps = (totalDps / playerRecords.length).toFixed(0)
-        const avgRating = (totalRating / playerRecords.length).toFixed(1)
+        const avgDps = (totalDps / dpsRecords.length).toFixed(0)
+        const avgRating = (totalRating / dpsRecords.length).toFixed(1)
 
-        // Atualizar jogador
+        // Atualizar o jogador com as novas médias
         await prisma.player.update({
-          where: { id: player.id as string },
+          where: {
+            id: player.id,
+          },
           data: {
             avgDps: avgDps,
-            maxDps: maxDps.toString(),
             avgRating: avgRating,
+          },
+        })
+      } else {
+        // Se não houver registros, definir DPS e Rating como 0
+        await prisma.player.update({
+          where: {
+            id: player.id,
+          },
+          data: {
+            avgDps: "0",
+            avgRating: "0",
           },
         })
       }
     }
 
+    console.log("Médias dos jogadores atualizadas com sucesso.")
     return { success: true }
   } catch (error) {
-    console.error("Error updating player averages:", error)
+    console.error("Erro ao atualizar médias dos jogadores:", error)
     return { success: false }
   }
 }
