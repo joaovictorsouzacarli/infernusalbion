@@ -36,10 +36,30 @@ export default function AdminDashboard() {
   useEffect(() => {
     const checkAuth = () => {
       try {
+        console.log("Verificando autenticação...")
+
+        // Verificar se localStorage está disponível
+        if (typeof window === "undefined" || !window.localStorage) {
+          console.error("localStorage não está disponível")
+          setError("Erro: localStorage não está disponível")
+          setAuthChecked(true)
+          return
+        }
+
+        // Verificar valores no localStorage
+        const authToken = localStorage.getItem("adminAuth")
+        const username = localStorage.getItem("adminUsername")
+        console.log("Valores no localStorage:", { authToken, username })
+
+        // Verificar cookie
+        const hasCookie = document.cookie.includes("adminAuth=true")
+        console.log("Cookie adminAuth presente:", hasCookie)
+
         const auth = isAuthenticated()
         console.log("Status de autenticação:", auth)
 
         if (!auth) {
+          console.log("Não autenticado, redirecionando para login")
           const currentPath = window.location.pathname
           console.log("Redirecionando para login:", `/admin/login?from=${currentPath}`)
           router.replace(`/admin/login?from=${currentPath}`)
@@ -51,8 +71,8 @@ export default function AdminDashboard() {
         console.log("Usuário logado:", user)
         setLoggedInUser(user)
       } catch (error) {
-        console.error("Erro na verificação de autenticação:", error)
-        setError("Erro na verificação de autenticação")
+        console.error("Erro detalhado na verificação de autenticação:", error)
+        setError("Erro na verificação de autenticação: " + (error instanceof Error ? error.message : String(error)))
       } finally {
         setAuthChecked(true)
       }
@@ -68,7 +88,9 @@ export default function AdminDashboard() {
     }
   }, [isAuth, authChecked])
 
-  // Função para buscar dados
+  // Modificar a função fetchData para adicionar tratamento de erro mais detalhado
+  // e tentar carregar os dados em etapas
+
   const fetchData = async () => {
     try {
       setIsLoading(true)
@@ -76,46 +98,82 @@ export default function AdminDashboard() {
 
       console.log("Iniciando busca de dados...")
 
-      // Buscar jogadores
-      const playersResponse = await fetch(`/api/players?t=${Date.now()}`, {
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
-      })
+      try {
+        // Primeiro, apenas verificar a conexão com o banco
+        const testResponse = await fetch(`/api/test-mongodb?t=${Date.now()}`, {
+          cache: "no-store",
+        })
 
-      if (!playersResponse.ok) {
-        throw new Error(`Erro na resposta da API de jogadores: ${playersResponse.status}`)
+        if (!testResponse.ok) {
+          throw new Error(`Erro na conexão com o banco de dados: ${testResponse.status}`)
+        }
+
+        const testData = await testResponse.json()
+        console.log("Teste de conexão com o banco:", testData)
+
+        if (!testData.success) {
+          throw new Error(`Falha no teste de conexão: ${testData.error || "Erro desconhecido"}`)
+        }
+      } catch (dbError) {
+        console.error("Erro no teste de conexão com o banco:", dbError)
+        throw new Error(`Problema na conexão com o banco de dados: ${dbError.message}`)
       }
 
-      const playersData = await playersResponse.json()
-      console.log(`Painel Admin: Recebidos ${playersData.length} jogadores da API`)
-      setPlayers(playersData)
-      setFilteredPlayers(playersData)
+      // Se chegou aqui, a conexão está ok. Agora tentar buscar jogadores
+      try {
+        // Buscar jogadores
+        const playersResponse = await fetch(`/api/players?t=${Date.now()}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        })
 
-      // Buscar registros de DPS
-      const recordsResponse = await fetch(`/api/dps-records?t=${Date.now()}`, {
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
-      })
+        if (!playersResponse.ok) {
+          throw new Error(`Erro na resposta da API de jogadores: ${playersResponse.status}`)
+        }
 
-      if (!recordsResponse.ok) {
-        throw new Error(`Erro na resposta da API de registros: ${recordsResponse.status}`)
+        const playersData = await playersResponse.json()
+        console.log(`Painel Admin: Recebidos ${playersData.length} jogadores da API`)
+        setPlayers(playersData)
+        setFilteredPlayers(playersData)
+      } catch (playersError) {
+        console.error("Erro ao buscar jogadores:", playersError)
+        setPlayers([])
+        setFilteredPlayers([])
+        // Não interromper o fluxo, tentar buscar os registros mesmo assim
       }
 
-      const recordsData = await recordsResponse.json()
-      console.log(`Painel Admin: Recebidos ${recordsData.length} registros de DPS da API`)
-      setDpsRecords(recordsData)
-      setFilteredRecords(recordsData)
+      // Tentar buscar registros de DPS
+      try {
+        const recordsResponse = await fetch(`/api/dps-records?t=${Date.now()}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        })
+
+        if (!recordsResponse.ok) {
+          throw new Error(`Erro na resposta da API de registros: ${recordsResponse.status}`)
+        }
+
+        const recordsData = await recordsResponse.json()
+        console.log(`Painel Admin: Recebidos ${recordsData.length} registros de DPS da API`)
+        setDpsRecords(recordsData)
+        setFilteredRecords(recordsData)
+      } catch (recordsError) {
+        console.error("Erro ao buscar registros de DPS:", recordsError)
+        setDpsRecords([])
+        setFilteredRecords([])
+        // Não interromper o fluxo
+      }
     } catch (error) {
-      console.error("Erro ao buscar dados:", error)
-      setError("Erro ao carregar dados. Por favor, tente novamente.")
+      console.error("Erro geral ao buscar dados:", error)
+      setError("Erro ao carregar dados: " + (error instanceof Error ? error.message : String(error)))
     } finally {
       setIsLoading(false)
     }
