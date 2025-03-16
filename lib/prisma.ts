@@ -22,14 +22,6 @@ const prismaClientSingleton = () => {
           url: process.env.DATABASE_URL,
         },
       },
-      // Adicionar configurações para melhorar a estabilidade
-      // Aumentar timeouts para operações lentas
-      __internal: {
-        engine: {
-          connectionTimeout: 10000, // 10 segundos
-          queryEngineTimeout: 15000, // 15 segundos
-        },
-      },
     })
   } catch (error) {
     console.error("Erro ao inicializar PrismaClient:", error)
@@ -37,20 +29,11 @@ const prismaClientSingleton = () => {
   }
 }
 
-// Usar uma abordagem mais robusta para inicializar o Prisma
-let prisma: PrismaClient
+const prisma = global.prisma || prismaClientSingleton()
 
-// Em produção, sempre criar uma nova instância
-if (process.env.NODE_ENV === "production") {
-  prisma = prismaClientSingleton()
-  console.log("PrismaClient configurado em ambiente de produção")
-} else {
-  // Em desenvolvimento, reutilizar a instância global
-  if (!global.prisma) {
-    global.prisma = prismaClientSingleton()
-    console.log("PrismaClient configurado em ambiente de desenvolvimento")
-  }
-  prisma = global.prisma
+if (process.env.NODE_ENV !== "production") {
+  global.prisma = prisma
+  console.log("PrismaClient configurado em ambiente de desenvolvimento")
 }
 
 // Adicionar tratamento de erro para conexões
