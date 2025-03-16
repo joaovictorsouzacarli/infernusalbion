@@ -6,7 +6,7 @@ declare global {
 }
 
 // Criar uma instância do PrismaClient
-let prisma: PrismaClient
+let prisma: PrismaClient | undefined
 
 if (process.env.NODE_ENV === "production") {
   prisma = new PrismaClient()
