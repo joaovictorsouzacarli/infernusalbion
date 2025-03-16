@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Trash2, RefreshCw, Plus, LogOut, ArrowLeft, User } from "lucide-react"
+import { Trash2, RefreshCw, Plus, LogOut, ArrowLeft, User, Database, PenToolIcon as Tool } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
@@ -379,6 +379,26 @@ export default function AdminDashboard() {
                   <RefreshCw className="mr-2 h-4 w-4" />
                   Atualizar Dados
                 </Button>
+                <Link href="/api/diagnose-db" target="_blank">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-orange-600 text-orange-400 hover:bg-orange-900/20"
+                  >
+                    <Database className="mr-2 h-4 w-4" />
+                    Diagnosticar Banco de Dados
+                  </Button>
+                </Link>
+                <Link href="/api/fix-database" target="_blank">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-green-600 text-green-400 hover:bg-green-900/20"
+                  >
+                    <Tool className="mr-2 h-4 w-4" />
+                    Corrigir Banco de Dados
+                  </Button>
+                </Link>
                 <Button
                   variant="outline"
                   size="sm"
