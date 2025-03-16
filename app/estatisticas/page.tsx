@@ -6,8 +6,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, Search, Medal, BarChart3, Users } from "lucide-react"
-import type { Player } from "@/lib/db"
+import { ArrowLeft, Search, Medal, BarChart3, Users, Filter, Calendar } from "lucide-react"
+import type { Player, DpsRecord } from "@/lib/db"
 import { SiteHeader } from "@/components/site-header"
 
 export default function EstatisticasPage() {
@@ -16,18 +16,24 @@ export default function EstatisticasPage() {
   const tabParam = searchParams.get("tab")
 
   const [players, setPlayers] = useState<Player[]>([])
+  const [dpsRecords, setDpsRecords] = useState<DpsRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState(playerParam || "")
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
+  const [selectedClass, setSelectedClass] = useState<string | null>(null)
+  const [playerRecords, setPlayerRecords] = useState<DpsRecord[]>([])
   const [sameClassPlayers, setSameClassPlayers] = useState<Player[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [showFilters, setShowFilters] = useState(false)
 
-  // Buscar todos os jogadores
+  // Buscar todos os jogadores e registros
   useEffect(() => {
-    const fetchPlayers = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true)
-        const res = await fetch("/api/players?t=" + Date.now(), {
+
+        // Buscar jogadores
+        const playersRes = await fetch("/api/players?t=" + Date.now(), {
           cache: "no-store",
           headers: {
             "Cache-Control": "no-cache, no-store, must-revalidate",
@@ -36,30 +42,47 @@ export default function EstatisticasPage() {
           },
         })
 
-        if (!res.ok) {
+        if (!playersRes.ok) {
           throw new Error("Falha ao carregar jogadores")
         }
 
-        const data = await res.json()
-        setPlayers(data)
+        const playersData = await playersRes.json()
+        setPlayers(playersData)
+
+        // Buscar registros de DPS
+        const recordsRes = await fetch("/api/dps-records?t=" + Date.now(), {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        })
+
+        if (!recordsRes.ok) {
+          throw new Error("Falha ao carregar registros de DPS")
+        }
+
+        const recordsData = await recordsRes.json()
+        setDpsRecords(recordsData)
 
         // Se tiver um parâmetro de jogador na URL, buscar esse jogador
         if (playerParam) {
-          const foundPlayer = data.find((p) => p.name.toLowerCase() === playerParam.toLowerCase())
+          const foundPlayer = playersData.find((p) => p.name.toLowerCase() === playerParam.toLowerCase())
 
           if (foundPlayer) {
             handleSelectPlayer(foundPlayer)
           }
         }
       } catch (error) {
-        console.error("Erro ao buscar jogadores:", error)
+        console.error("Erro ao buscar dados:", error)
         setError("Erro ao carregar dados. Tente novamente mais tarde.")
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchPlayers()
+    fetchData()
   }, [playerParam])
 
   // Filtrar jogadores com base na busca
@@ -71,14 +94,40 @@ export default function EstatisticasPage() {
   // Selecionar um jogador para ver detalhes
   const handleSelectPlayer = (player: Player) => {
     setSelectedPlayer(player)
+    setSelectedClass(player.class)
 
     // Encontrar jogadores da mesma classe para comparação
     const sameClass = players.filter((p) => p.class === player.class && p.id !== player.id && p._id !== player._id)
     setSameClassPlayers(sameClass)
 
+    // Encontrar registros deste jogador
+    const records = dpsRecords.filter(
+      (record) => record.playerName === player.name && record.playerClass === player.class,
+    )
+    setPlayerRecords(records)
+
     // Limpar a busca se não veio da URL
     if (!playerParam) {
       setSearchQuery("")
+    }
+  }
+
+  // Filtrar por classe
+  const handleFilterByClass = (className: string) => {
+    setSelectedClass(className)
+
+    if (selectedPlayer) {
+      // Encontrar registros deste jogador com esta classe
+      const records = dpsRecords.filter(
+        (record) => record.playerName === selectedPlayer.name && record.playerClass === className,
+      )
+      setPlayerRecords(records)
+
+      // Encontrar jogadores da mesma classe para comparação
+      const sameClass = players.filter(
+        (p) => p.class === className && p.id !== selectedPlayer.id && p._id !== selectedPlayer._id,
+      )
+      setSameClassPlayers(sameClass)
     }
   }
 
@@ -92,6 +141,41 @@ export default function EstatisticasPage() {
 
     return { rank, total: relevantPlayers.length }
   }
+
+  // Calcular estatísticas dos registros
+  const calculateStats = () => {
+    if (!playerRecords || playerRecords.length === 0) {
+      return { avgDps: 0, maxDps: 0, totalRecords: 0 }
+    }
+
+    const totalDps = playerRecords.reduce((sum, record) => sum + record.dps, 0)
+    const avgDps = Math.round(totalDps / playerRecords.length)
+    const maxDps = Math.max(...playerRecords.map((record) => record.dps))
+
+    return {
+      avgDps,
+      maxDps,
+      totalRecords: playerRecords.length,
+    }
+  }
+
+  const stats = calculateStats()
+
+  // Obter classes únicas do jogador selecionado
+  const getPlayerClasses = () => {
+    if (!selectedPlayer) return []
+
+    const playerName = selectedPlayer.name.split(" - ")[0] // Pegar apenas o nome base do jogador
+
+    // Encontrar todos os registros deste jogador (independente da classe)
+    const allRecords = dpsRecords.filter((record) => record.playerName.toLowerCase().includes(playerName.toLowerCase()))
+
+    // Extrair classes únicas
+    const uniqueClasses = [...new Set(allRecords.map((record) => record.playerClass))]
+    return uniqueClasses
+  }
+
+  const playerClasses = getPlayerClasses()
 
   return (
     <div className="flex min-h-screen flex-col bg-black/95 text-white relative">
@@ -132,6 +216,14 @@ export default function EstatisticasPage() {
                         className="pl-10 bg-gray-800 border-gray-700 text-white"
                       />
                     </div>
+                    <Button
+                      variant="outline"
+                      className="border-yellow-600 text-yellow-500"
+                      onClick={() => setShowFilters(!showFilters)}
+                    >
+                      <Filter className="mr-2 h-4 w-4" />
+                      Filtros
+                    </Button>
                   </div>
 
                   {searchQuery.trim() !== "" && (
@@ -171,7 +263,7 @@ export default function EstatisticasPage() {
                           <h3 className="text-2xl font-bold text-yellow-500">{selectedPlayer.name}</h3>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="bg-yellow-600/20 text-yellow-400 text-xs px-2 py-1 rounded">
-                              {selectedPlayer.class}
+                              {selectedClass || selectedPlayer.class}
                             </span>
                             <span className="bg-gray-800 text-gray-300 text-xs px-2 py-1 rounded">
                               {selectedPlayer.isHealer ? "Healer" : "DPS"}
@@ -202,26 +294,92 @@ export default function EstatisticasPage() {
                         </div>
                       </div>
 
+                      {/* Filtro de classes do jogador */}
+                      {playerClasses.length > 1 && (
+                        <div className="mb-6 bg-gray-800/50 p-3 rounded-lg">
+                          <div className="text-sm text-gray-400 mb-2 flex items-center">
+                            <Filter className="h-4 w-4 mr-1" />
+                            Classes do jogador:
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {playerClasses.map((className) => (
+                              <Button
+                                key={className}
+                                variant="outline"
+                                size="sm"
+                                className={`text-xs ${
+                                  selectedClass === className
+                                    ? "bg-yellow-600/20 text-yellow-400 border-yellow-600"
+                                    : "border-gray-700 text-gray-400"
+                                }`}
+                                onClick={() => handleFilterByClass(className)}
+                              >
+                                {className}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col items-center">
                           <div className="text-gray-400 text-sm mb-1">
                             Média de {selectedPlayer.isHealer ? "HPS" : "DPS"}
                           </div>
-                          <div className="text-2xl font-bold text-yellow-500">{selectedPlayer.avgDps}</div>
+                          <div className="text-2xl font-bold text-yellow-500">
+                            {stats.totalRecords > 0 ? stats.avgDps : selectedPlayer.avgDps}
+                          </div>
                         </div>
 
                         <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col items-center">
                           <div className="text-gray-400 text-sm mb-1">
                             Máximo {selectedPlayer.isHealer ? "HPS" : "DPS"}
                           </div>
-                          <div className="text-2xl font-bold text-yellow-500">{selectedPlayer.maxDps}</div>
+                          <div className="text-2xl font-bold text-yellow-500">
+                            {stats.totalRecords > 0 ? stats.maxDps : selectedPlayer.maxDps}
+                          </div>
                         </div>
 
                         <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col items-center">
-                          <div className="text-gray-400 text-sm mb-1">Nota Média</div>
-                          <div className="text-2xl font-bold text-yellow-500">{selectedPlayer.avgRating}</div>
+                          <div className="text-gray-400 text-sm mb-1">Partidas Registradas</div>
+                          <div className="text-2xl font-bold text-yellow-500">{stats.totalRecords}</div>
                         </div>
                       </div>
+
+                      {/* Histórico de partidas */}
+                      {playerRecords.length > 0 && (
+                        <div className="mb-6">
+                          <div className="flex items-center gap-2 text-gray-400 mb-2">
+                            <Calendar className="h-4 w-4" />
+                            <h4 className="font-medium">Histórico de Partidas</h4>
+                          </div>
+
+                          <div className="bg-gray-800/30 rounded-lg overflow-hidden">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="bg-black/30 text-xs">
+                                  <th className="px-3 py-2 text-left text-gray-400">Data</th>
+                                  <th className="px-3 py-2 text-left text-gray-400">Tipo</th>
+                                  <th className="px-3 py-2 text-right text-gray-400">
+                                    {selectedPlayer.isHealer ? "HPS" : "DPS"}
+                                  </th>
+                                  <th className="px-3 py-2 text-right text-gray-400">Nota</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {playerRecords.map((record) => (
+                                  <tr key={record.id || record._id} className="border-t border-gray-800/50">
+                                    <td className="px-3 py-2 text-sm text-gray-300">{record.date}</td>
+                                    <td className="px-3 py-2 text-sm text-gray-300">{record.huntType}</td>
+                                    <td className="px-3 py-2 text-sm text-yellow-500 text-right">{record.dps}</td>
+                                    <td className="px-3 py-2 text-sm text-yellow-500 text-right">{record.rating}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
 
                       <div className="flex items-center gap-2 text-gray-400 mb-2">
                         <BarChart3 className="h-4 w-4" />
@@ -284,7 +442,7 @@ export default function EstatisticasPage() {
                       ) : (
                         <div className="text-center text-gray-500 py-4 bg-gray-800/30 rounded-md">
                           <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                          Não há outros jogadores com a classe {selectedPlayer.class} para comparação
+                          Não há outros jogadores com a classe {selectedClass || selectedPlayer.class} para comparação
                         </div>
                       )}
                     </CardContent>
